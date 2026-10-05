@@ -6,7 +6,10 @@ Everything numeric happens here.
 
 from __future__ import annotations
 
+import math
 from dataclasses import asdict, dataclass, field
+
+from rapidfuzz import fuzz
 
 from orderdesk.parse.world import World
 
@@ -69,13 +72,24 @@ def _unit_for(world: World, customer: dict | None, sku: str, unit: str | None) -
     return ("carton" if s["carton_size"] > 1 else "piece"), "default"
 
 
+def _size_number(size: str) -> float:
+    digits = "".join(ch for ch in size if ch.isdigit() or ch == ".")
+    return float(digits) if digits else 0.0
+
+
 def _substitutes(world: World, sku: str, need: int) -> list[str]:
-    """Same family other sizes first, then same category; only items with enough stock."""
+    """What a person would offer instead, best first, in stock only: the same size from another family in the same
+    category (closest name first, e.g. another brand of 1.5 L water), then other sizes of the same product,
+    nearest size first."""
     s = world.skus[sku]
-    fam = [x["id"] for x in world.by_family[s["family"]] if x["id"] != sku]
-    cat = [x["id"] for x in world.skus.values() if x["category"] == s["category"] and x["family"] != s["family"]
-           and x["size_class"] == s["size_class"]]  # fmt: skip
-    return [x for x in fam + cat if world.stock.get(x, 0) >= need][:3]
+    product = s["name_en"].removeprefix(s["brand"]).removesuffix(s["size_label"]).strip()
+    same_size = [x for x in world.skus.values() if x["category"] == s["category"] and x["family"] != s["family"]
+                 and x["size_class"] == s["size_class"]]  # fmt: skip
+    same_size.sort(key=lambda x: -fuzz.token_set_ratio(product, x["name_en"].removeprefix(x["brand"])))
+    target = _size_number(s["size"]) or 1.0
+    other_size = [x for x in world.by_family[s["family"]] if x["id"] != sku]
+    other_size.sort(key=lambda x: abs(math.log((_size_number(x["size"]) or 1.0) / target)))
+    return [x["id"] for x in same_size + other_size if world.stock.get(x["id"], 0) >= need][:3]
 
 
 # A line with one of these flags always gets a person's look, whatever its confidence.

@@ -4,7 +4,7 @@ import type { Line, LineChange, Me, OrderDetail, Product, Unit } from "../lib/ty
 import { api, ApiError } from "../lib/api";
 import { keys } from "../lib/hooks";
 import { FLAG_TEXT, HOLD_TEXT, money, shortDate, UNIT_LABEL } from "../lib/format";
-import { needsCheck, SURE } from "../lib/lines";
+import { needsCheck, shouldOfferToTeach, SURE } from "../lib/lines";
 import ProductPicker from "./ProductPicker";
 import Stamp from "./Stamp";
 import "./OrderPad.css";
@@ -332,9 +332,9 @@ export default function OrderPad({ me, order, loading, onHighlight, onDone }: {
           <LineRow key={`${order.id}-${l.position}-${l.sku}`} line={l} selected={i === selected} editing={editing === l.position} readOnly={!open}
             onSelect={() => setSelected(i)} onEdit={() => setEditing(l.position)} onCancel={() => setEditing(null)}
             onDelete={() => void apply([{ op: "delete", position: l.position }])}
-            onSave={(ch, oldSku, p) => {
+            onSave={(ch, _oldSku, p) => {
               void apply([ch]).then(() => {
-                if (oldSku !== p.id && l.source_text && !l.source_text.startsWith("(") && !l.flags.includes("from_last_order")) setTeach({ product: p, source: l.source_text });
+                if (shouldOfferToTeach(l, p)) setTeach({ product: p, source: l.source_text });
               });
             }} />
         ))}
@@ -344,10 +344,12 @@ export default function OrderPad({ me, order, loading, onHighlight, onDone }: {
       {teach && <TeachName order={order} product={teach.product} sourceText={teach.source} onClose={() => setTeach(null)} />}
 
       <footer className="pad-foot">
-        {stamp}
-        <p className="pad-total">
-          <span className="muted">Total</span> AED {money(order.total_fils)}
-        </p>
+        <div className={`pad-foot-top ${stamp ? "pad-foot-top--stamped" : ""}`}>
+          {stamp}
+          <p className="pad-total">
+            <span className="muted">Total</span> AED {money(order.total_fils)}
+          </p>
+        </div>
         {error && <p className="error-text" role="alert">{error}</p>}
         {open && (
           <div className="pad-confirm">
