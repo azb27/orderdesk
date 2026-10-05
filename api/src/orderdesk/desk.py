@@ -34,7 +34,7 @@ from orderdesk.db.models import (
     User,
 )
 from orderdesk.erp.client import ErpError, post_sales_order
-from orderdesk.jobs.queue import enqueue, handler
+from orderdesk.jobs.queue import Stop, enqueue, handler
 from orderdesk.parse.build import Draft, Resolved, build_draft
 from orderdesk.parse.confidence import score_lines
 from orderdesk.parse.fuzzy import parse_text
@@ -420,11 +420,8 @@ def handle_post_erp(s: Session, payload: dict[str, Any], client: Any = None) -> 
         erp_ref = post_sales_order(
             erp_payload(order), key=f"orderdesk:{order.ref}", client=client or _erp_client
         )
-    except ErpError as e:
-        order.status = "post_failed"
-        audit(s, None, "erp_rejected", "order", order.ref, note=str(e))
-        publish(s, "order", order_id=order.id, status=order.status)
-        return
+    except ErpError as e:  # retrying won't help until someone fixes the cause; the dead hook records it
+        raise Stop(str(e)) from e
     order.status, order.erp_ref = "posted", erp_ref
     cust = s.get(Customer, order.customer_id)
     if cust:
@@ -444,7 +441,24 @@ def handle_post_erp_dead(s: Session, payload: dict[str, Any]) -> None:
     order = s.get(SalesOrder, payload["order_id"])
     if order and order.status == "confirmed":
         order.status = "post_failed"
-        audit(s, None, "erp_post_failed", "order", order.ref, note="gave up after retries; see the jobs page")
+        if payload.get("_stopped"):
+            audit(
+                s,
+                None,
+                "erp_rejected",
+                "order",
+                order.ref,
+                note=f"{payload.get('_error')}; fix it, then retry on the jobs page",
+            )
+        else:
+            audit(
+                s,
+                None,
+                "erp_post_failed",
+                "order",
+                order.ref,
+                note="gave up after retries; see the jobs page",
+            )
         publish(s, "order", order_id=order.id, status=order.status)
 
 

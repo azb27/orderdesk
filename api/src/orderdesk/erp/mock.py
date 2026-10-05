@@ -1,6 +1,6 @@
 """A mock ERP sales-order API with fault injection, standing in for the customer's real ERP.
 
-    POST /erp-mock/v1/sales-orders   (header Idempotency-Key)  -> 201 {erp_ref} | 200 replay | 503 | slow
+    POST /erp-mock/v1/sales-orders   (header Idempotency-Key)  -> 201 {erp_ref} | 200 replay | 422 | 503 | slow
     POST /erp-mock/v1/faults         set failures for testing and demos
 
 Faults include the nasty one: the ERP books the order and then the response is lost. Only an idempotency
@@ -38,6 +38,9 @@ class Faults(BaseModel):
     fail_next: int = 0  # next N requests return 503 before booking anything
     lose_response_next: int = 0  # next N requests book the order, then fail as if the response were lost
     slow_next: int = 0  # next N requests take `slow_seconds`
+    reject_next: int = (
+        0  # next N requests are refused with 422, as an ERP does for a customer it doesn't know
+    )
     slow_seconds: float = 5.0
 
 
@@ -69,6 +72,8 @@ def create_sales_order(payload: dict[str, Any], idempotency_key: str = Header(..
         raise HTTPException(503, "ERP temporarily unavailable")
     if _take("slow_next"):
         time.sleep(_faults.slow_seconds)
+    if _take("reject_next"):
+        raise HTTPException(422, "customer account is blocked in the ERP")
     if not payload.get("lines"):
         raise HTTPException(422, "an ERP sales order needs at least one line")
     stmt = (

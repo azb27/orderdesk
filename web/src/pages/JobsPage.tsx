@@ -37,7 +37,7 @@ export default function JobsPage({ me }: { me: Me }) {
         </section>
         <section aria-labelledby="dead">
           <h2 id="dead">Jobs that gave up</h2>
-          <p className="muted">After five failed attempts a job stops retrying and waits here. A supervisor can send it again once the cause is fixed.</p>
+          <p className="muted">A job lands here after five failed attempts, or at once if the ERP refuses the order. A supervisor can send it again once the cause is fixed.</p>
           {dead.data?.length === 0 && <p className="jobs-none">Nothing stuck. Every job has finished.</p>}
           <ul className="jobs-list">
             {dead.data?.map((j) => (

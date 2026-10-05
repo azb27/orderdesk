@@ -29,6 +29,11 @@ class Retry(Exception):
     """Raise from a handler to retry later (counts as an attempt)."""
 
 
+class Stop(Exception):
+    """A failure that retrying won't fix (the ERP rejected the order): dead-letter now, so a person can fix the
+    cause and retry it from the jobs page."""
+
+
 def handler(kind: str):
     def deco(fn):
         HANDLERS[kind] = fn
@@ -87,11 +92,11 @@ def run_one() -> bool:
             j = s.get(Job, job_id)
             assert j is not None
             j.last_error, j.locked_at = err, None
-            if j.attempts >= j.max_attempts:
+            if j.attempts >= j.max_attempts or isinstance(e, Stop):
                 j.status = "dead"
                 on_dead = HANDLERS.get(f"{kind}:dead")
                 if on_dead:
-                    on_dead(s, payload)
+                    on_dead(s, {**payload, "_error": str(e), "_stopped": isinstance(e, Stop)})
             else:
                 j.status = "queued"
                 j.run_after = dt.datetime.now(dt.UTC) + dt.timedelta(seconds=backoff(j.attempts))

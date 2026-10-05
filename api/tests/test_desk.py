@@ -387,3 +387,21 @@ def test_rate_limit_uses_the_address_the_proxy_appended(monkeypatch):
     assert client_ip(req("1.1.1.1, 9.9.9.9")) == "10.0.0.1"  # not behind a trusted proxy: ignore the header
     monkeypatch.setenv("TRUST_PROXY", "1")
     assert client_ip(req("1.1.1.1, 9.9.9.9")) == "9.9.9.9"  # a forged first entry doesn't change the key
+
+
+def test_an_erp_rejection_goes_straight_to_the_jobs_page_and_can_be_sent_again(client):
+    o = _confirmed_order(client)
+    client.post("/erp-mock/v1/faults", json={"reject_next": 1})
+    queue.drain()
+    assert client.get(f"/api/orders/{o['id']}").json()["status"] == "post_failed"
+    dead = client.get("/api/jobs", params={"status": "dead"}).json()
+    assert (
+        len(dead) == 1 and dead[0]["attempts"] == 1 and "422" in dead[0]["last_error"]
+    )  # no pointless retries
+    trail = client.get("/api/audit", params={"entity": "order", "entity_id": o["ref"]}).json()
+    assert any(e["action"] == "erp_rejected" and "blocked" in (e["note"] or "") for e in trail)
+    client.post("/api/auth/logout")
+    login(client, "omar")
+    assert client.post(f"/api/jobs/{dead[0]['id']}/retry", headers=H).status_code == 200
+    queue.drain()
+    assert client.get(f"/api/orders/{o['id']}").json()["status"] == "posted"
