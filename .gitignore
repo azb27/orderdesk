@@ -25,3 +25,4 @@ runs/evals/_archive/*/*/*
 *.env
 .secrets/
 runs_*.log
+docs/images/*.webm
