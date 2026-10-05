@@ -4,5 +4,7 @@ import type { Line } from "./types";
 export const SURE = 0.9;
 
 export function needsCheck(l: Line): boolean {
-  return l.sku === null || (!l.edited && l.confidence < SURE) || l.flags.some((f) => ["out_of_stock", "unit_guessed", "bad_quantity", "unresolved"].includes(f));
+  if (l.sku === null || l.flags.some((f) => ["out_of_stock", "unit_guessed", "bad_quantity", "unresolved"].includes(f))) return true;
+  // once a person has edited the line, low confidence and an unusual quantity are theirs to judge
+  return !l.edited && (l.confidence < SURE || l.flags.includes("unusual_qty"));
 }

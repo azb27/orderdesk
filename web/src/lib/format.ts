@@ -23,6 +23,8 @@ export const FLAG_TEXT: Record<string, string> = {
   unit_guessed: "Unit guessed",
   out_of_stock: "Out of stock",
   low_stock: "Low stock",
+  unusual_qty: "Far more than they usually order",
+  size_from_history: "Size from their usual order",
   from_last_order: "From their last order",
 };
 

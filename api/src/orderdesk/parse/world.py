@@ -64,6 +64,23 @@ class World:
             out[sku] = Usual(sku, unit, q[len(q) // 2], sum(c.values()))
         return out
 
+    @cache  # noqa: B019 - World lives for the process
+    def largest(self, customer: str) -> tuple[dict[str, int], int]:
+        """The most of each SKU (base units) this customer has ever ordered, and their largest order value."""
+        cust = self.customers.get(customer)
+        most: dict[str, int] = {}
+        biggest = 0
+        for o in self.history.get(customer, []):
+            value = 0
+            for ln in o["lines"]:
+                b = self.base_qty(ln["sku"], ln["qty"], ln["unit"])
+                most[ln["sku"]] = max(most.get(ln["sku"], 0), b)
+                value += (
+                    self.price_fils(cust, ln["sku"]) if cust else self.skus[ln["sku"]]["price_fils"]
+                ) * b
+            biggest = max(biggest, value)
+        return most, biggest
+
     def base_qty(self, sku: str, qty: int, unit: str) -> int:
         s = self.skus[sku]
         return qty * {"carton": s["carton_size"], "pack": s["pack_size"] or 1, "piece": 1}[unit]

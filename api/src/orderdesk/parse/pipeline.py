@@ -190,13 +190,21 @@ def parse_conversation(messages: list[dict], phone: str, extract_model: ToolMode
                 errors.append(f"line {i}: chose {sku} which was not a candidate; rejected")
             sku = None
         chosen = next((c for c in cands if c.sku == sku), None)
+        size_from_history = False
+        if chosen and ln["size"] is None and ln["action"] != "remove" and customer and chosen.score < 200:
+            # No size written and they only ever buy one size of this product: that size, as a person would.
+            fam = w.skus[chosen.sku]["family"]
+            mine = [k for k in w.usual(customer["id"]) if w.skus[k]["family"] == fam]
+            if len(mine) == 1 and mine[0] != chosen.sku and mine[0] in allowed:
+                sku, size_from_history = mine[0], True
+                chosen = next(c for c in cands if c.sku == sku)
         feats = {"rank": chosen.rank if chosen else 0, "family_score": chosen.family_score if chosen else 0.0,
                  "alias_exact": bool(chosen and chosen.alias_exact), "in_history": bool(chosen and chosen.in_history),
                  "family_in_history": bool(chosen and chosen.family_in_history), "size_match": bool(chosen and chosen.size_match),
                  "nickname": bool(chosen and chosen.score >= 200), "n_candidates": len(cands),
                  "size_given": ln["size"] is not None, "unit_given": ln["unit"] is not None,
                  "from_image": messages[ln["message"]].get("type") == "image", "model": ch.get("confidence", "low"),
-                 "repeat": ext["intent"] == "repeat_last_order"}  # fmt: skip
+                 "repeat": ext["intent"] == "repeat_last_order", "size_from_history": size_from_history}  # fmt: skip
         r = Resolved(sku, ln["quantity"], ln["unit"], ln["action"], ln["source"], ln["message"], ln["product"],
                      ch.get("confidence", "low"), ch.get("why", ""), [c.sku for c in cands[:8]], feats)  # fmt: skip
         resolved.append(r)

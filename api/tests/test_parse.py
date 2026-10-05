@@ -8,7 +8,7 @@ import subprocess
 import sys
 
 from orderdesk import config
-from orderdesk.parse.build import Resolved, build_draft
+from orderdesk.parse.build import Resolved, build_draft, unusual_qty
 from orderdesk.parse.fuzzy import parse_text
 from orderdesk.parse.llm import Scripted
 from orderdesk.parse.normalize import norm
@@ -176,3 +176,55 @@ def test_retrieval_is_identical_across_processes():
     outs = {subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env={**os.environ,
             "PYTHONHASHSEED": str(seed)}).stdout for seed in (1, 2, 3)}  # fmt: skip
     assert len(outs) == 1 and "SL-" in outs.pop()
+
+
+def test_quantities_far_outside_history_are_flagged_for_a_look():
+    w = world()
+    cust = w.customers["C1004"]
+    most, _ = w.largest("C1004")
+    sku = max(most, key=lambda k: most[k])
+    s = w.skus[sku]
+    assert not unusual_qty(w, "C1004", sku, most[sku])  # what they have ordered before is fine
+    assert unusual_qty(w, "C1004", sku, 3 * most[sku] + 1)  # "450 g" read as 450 cartons is not
+    cartons = 3 * most[sku] // s["carton_size"] + 1
+    d = build_draft(w, cust, "order", [Resolved(sku, cartons, "carton", "add", "x")])
+    assert "unusual_qty" in d.lines[0].flags and "needs_review" in d.holds
+    never = next(k for k in w.skus if k not in most)  # never ordered: judged against their largest order
+    assert not unusual_qty(w, "C1004", never, 1)
+    assert unusual_qty(w, "C1004", never, 10**6)
+
+
+def test_no_size_written_and_one_usual_size_takes_their_size():
+    usual = W.usual(C["id"])
+    fam, mine = next(
+        (f, ks[0])
+        for f in W.by_family
+        if len(ks := [k for k in usual if W.skus[k]["family"] == f]) == 1 and len(W.by_family[f]) > 1
+    )
+    other = next(s["id"] for s in W.by_family[fam] if s["id"] != mine)
+    text = W.family_name[fam].lower()
+    ext = _ext((f"{text} 2 ctn", text, None, 2, "carton", "add"))
+    fake = Scripted([{"choices": [{"line": 0, "sku": other, "confidence": "low", "why": "guessed a size"}]}])
+    r = parse_conversation([{"type": "text", "text": f"{text} 2 ctn"}], C["phone"], Scripted([ext]), fake)
+    ln = r.draft.lines[0]
+    assert ln.sku == mine and "size_from_history" in ln.flags
+    # a written size is never overridden
+    ext2 = _ext((f"{text} 2 ctn", text, W.skus[other]["size_label"], 2, "carton", "add"))
+    fake2 = Scripted([{"choices": [{"line": 0, "sku": other, "confidence": "high", "why": "size written"}]}])
+    r2 = parse_conversation([{"type": "text", "text": f"{text} 2 ctn"}], C["phone"], Scripted([ext2]), fake2)
+    assert r2.draft.lines[0].sku == other
+
+
+def test_removing_a_size_they_did_not_order_last_time_removes_the_one_they_did():
+    last = W.last_order(C["id"])
+    target = next(
+        ln["sku"]
+        for ln in last["lines"]
+        if len(W.by_family[W.skus[ln["sku"]]["family"]]) > 1
+        and sum(W.skus[x["sku"]]["family"] == W.skus[ln["sku"]]["family"] for x in last["lines"]) == 1
+    )
+    sibling = next(s["id"] for s in W.by_family[W.skus[target]["family"]] if s["id"] != target)
+    d = build_draft(
+        W, C, "repeat_last_order", [Resolved(sibling, None, None, "remove", "no x")], repeat_last=True
+    )
+    assert target not in {ln.sku for ln in d.lines} and any("Removed" in n for n in d.notes)

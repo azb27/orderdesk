@@ -78,6 +78,26 @@ def _substitutes(world: World, sku: str, need: int) -> list[str]:
     return [x for x in fam + cat if world.stock.get(x, 0) >= need][:3]
 
 
+# A line with one of these flags always gets a person's look, whatever its confidence.
+REVIEW_FLAGS = ("out_of_stock", "unit_guessed", "unusual_qty")
+UNUSUAL_TIMES_MOST = 3  # more than 3x the most of this SKU they have ever ordered...
+UNUSUAL_SHARE_OF_LARGEST = 0.5  # ...or, for a SKU they've never ordered, worth over half their largest order
+
+
+def unusual_qty(world: World, customer: str, sku: str, base: int) -> bool:
+    """A quantity far outside this customer's history: "450 g" read as 450 cartons, a typo'd zero.
+
+    Thresholds were set on the dev split (see docs/results/eval.md, "Quantity guard").
+    """
+    most, biggest = world.largest(customer)
+    if sku in most:
+        return base > UNUSUAL_TIMES_MOST * most[sku]
+    if not biggest:
+        return False
+    price = world.price_fils(world.customers[customer], sku)
+    return price * base > UNUSUAL_SHARE_OF_LARGEST * biggest
+
+
 def build_draft(
     world: World, customer: dict | None, intent: str, resolved: list[Resolved], repeat_last: bool = False
 ) -> Draft:
@@ -105,7 +125,15 @@ def build_draft(
                                         ["unresolved"], evidence={"product": r.product, "why": r.why, "candidates": r.candidates}))  # fmt: skip
             continue
         if r.action == "remove":
-            order.pop(r.sku, None)
+            if r.sku in order:
+                order.pop(r.sku)
+            else:  # "no milk" when last order had a different size of it: remove that one, if it's the only one
+                same = [k for k in order if world.skus[k]["family"] == world.skus[r.sku]["family"]]
+                if len(same) == 1:
+                    order.pop(same[0])
+                    notes.append(
+                        f"Removed {world.skus[same[0]]['name_en']}: they asked to drop {r.source!r}."
+                    )
             continue
         if r.qty is None or r.qty <= 0 or r.qty != int(r.qty):
             unresolved.append(DraftLine(r.sku, 0, r.unit or "piece", 0, 0, 0, r.source, "customer", ["bad_quantity"],
@@ -134,8 +162,12 @@ def build_draft(
         base = world.base_qty(sku, o["qty"], o["unit"])
         price = world.price_fils(customer, sku) if customer else world.skus[sku]["price_fils"]
         flags = list(o["flags"])
+        if o["r"] is not None and o["r"].features.get("size_from_history"):
+            flags.append("size_from_history")
         if o["unit_from"] != "customer" and "from_last_order" not in flags:
             flags.append("unit_from_history" if o["unit_from"] == "history" else "unit_guessed")
+        if customer and unusual_qty(world, customer["id"], sku, base):
+            flags.append("unusual_qty")
         on_hand = world.stock.get(sku, 0)
         subs: list[str] = []
         if on_hand == 0:
@@ -165,6 +197,6 @@ def build_draft(
     total = sum(ln.amount_fils for ln in lines)
     if customer and customer["balance_fils"] + total > customer["credit_limit_fils"]:
         holds.append("credit_hold")
-    if unresolved or any(f in ln.flags for ln in lines for f in ("out_of_stock", "unit_guessed")):
+    if unresolved or any(f in ln.flags for ln in lines for f in REVIEW_FLAGS):
         holds.append("needs_review")
     return Draft(customer["id"] if customer else None, intent, lines, total, sorted(set(holds)), notes)
