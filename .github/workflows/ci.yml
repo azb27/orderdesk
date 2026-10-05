@@ -34,7 +34,13 @@ jobs:
       - name: Lint
         run: ruff check . && ruff format --check .
       - name: Tests (real Postgres)
-        run: pytest -q
+        shell: bash
+        run: |
+          set +e
+          pytest -q 2>&1 | tee pytest.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then grep -E "Error|error|FAILED|assert" pytest.log | tail -10 | while IFS= read -r l; do echo "::error::$l"; done; fi
+          exit $status
 
   web:
     runs-on: ubuntu-latest
