@@ -1,0 +1,40 @@
+/* Design tokens. Every colour, size and radius in the app comes from here. */
+:root {
+  --font-sans: "Inter", "Noto Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --bg: #f6f5f1;
+  --surface: #ffffff;
+  --surface-2: #efede7;
+  --ink: #1c1b18;
+  --ink-2: #57544c;
+  --line: #dcd8ce;
+  --accent: #0f6b5c;
+  --accent-ink: #ffffff;
+  --warn: #9a5b00;
+  --danger: #b3261e;
+  --ok: #1e6b3a;
+  --radius: 8px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 2px 8px rgb(0 0 0 / 0.04);
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141412;
+    --surface: #1c1c19;
+    --surface-2: #252521;
+    --ink: #ecebe6;
+    --ink-2: #a9a69c;
+    --line: #34332e;
+    --accent: #3fb59f;
+    --accent-ink: #0b1f1b;
+    --warn: #e0a13a;
+    --danger: #f08a80;
+    --ok: #6cc98d;
+  }
+}
