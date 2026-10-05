@@ -44,3 +44,6 @@ target-version = "py311"
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "RUF", "ISC", "PLC"]
 ignore = ["E501", "RUF001", "RUF002", "RUF003", "ISC004"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Header", "fastapi.File", "fastapi.Form", "fastapi.Body"]

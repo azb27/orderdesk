@@ -24,7 +24,7 @@ def engine(url: str | None = None) -> Engine:
     return create_engine(url, pool_pre_ping=True, pool_size=5, max_overflow=5)
 
 
-def SessionLocal() -> Session:  # noqa: N802 - reads like a class at call sites
+def SessionLocal() -> Session:
     return sessionmaker(bind=engine(), expire_on_commit=False)()
 
 

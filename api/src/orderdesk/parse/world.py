@@ -102,6 +102,94 @@ def load_world(root: Path | None = None) -> World:
     )
 
 
+def load_world_from_db(session) -> World:
+    """The same World, built from the desk's Postgres tables (the product's source of truth)."""
+    from orderdesk.db.models import (  # noqa: PLC0415 - avoid a cycle
+        Alias,
+        Customer,
+        OrderLine,
+        Product,
+        SalesOrder,
+    )
+
+    skus = {}
+    stock = {}
+    for p in session.query(Product).all():
+        skus[p.id] = {
+            c: getattr(p, c)
+            for c in (
+                "id",
+                "family",
+                "size",
+                "name_en",
+                "name_ar",
+                "brand",
+                "category",
+                "size_label",
+                "size_class",
+                "base_unit",
+                "pack_size",
+                "carton_size",
+                "price_fils",
+                "barcode",
+                "aliases",
+            )
+        }
+        stock[p.id] = p.stock_on_hand
+    customers = {}
+    for c in session.query(Customer).all():
+        customers[c.id] = {
+            k: getattr(c, k)
+            for k in (
+                "id",
+                "name",
+                "type",
+                "area",
+                "phone",
+                "contact_name",
+                "tier",
+                "credit_limit_fils",
+                "balance_fils",
+                "styles",
+                "nicknames",
+                "contract_prices",
+            )
+        }
+    hist: dict[str, list[dict]] = defaultdict(list)
+    rows = (
+        session.query(
+            SalesOrder.ref,
+            SalesOrder.customer_id,
+            SalesOrder.order_date,
+            OrderLine.sku,
+            OrderLine.qty,
+            OrderLine.unit,
+        )
+        .join(OrderLine, OrderLine.order_id == SalesOrder.id)
+        .filter(SalesOrder.status.in_(("history", "confirmed", "posted")), OrderLine.sku.isnot(None))
+        .order_by(SalesOrder.order_date, SalesOrder.id, OrderLine.position)
+        .all()
+    )
+    by_ref: dict[str, dict] = {}
+    for ref, cust, date, sku, qty, unit in rows:
+        if ref not in by_ref:
+            by_ref[ref] = {"id": ref, "customer": cust, "date": date.isoformat() if date else "", "lines": []}
+            hist[cust].append(by_ref[ref])
+        by_ref[ref]["lines"].append({"sku": sku, "qty": qty, "unit": unit})
+    aliases: dict[str, list[str]] = defaultdict(list)
+    for a in session.query(Alias).all():
+        aliases[a.term].append(a.family)
+    return World(
+        skus=skus,
+        customers=customers,
+        by_phone={c["phone"]: k for k, c in customers.items()},
+        history=dict(hist),
+        stock=stock,
+        aliases={k: sorted(set(v)) for k, v in aliases.items()},
+    )
+
+
 @cache
 def world() -> World:
+    """The world from data/world (evals, tests and the fuzzy baseline)."""
     return load_world()

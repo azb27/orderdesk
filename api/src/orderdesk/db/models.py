@@ -8,7 +8,7 @@ The mock ERP keeps its own table in the `erp` schema, as a separate system would
 from __future__ import annotations
 
 import datetime as dt
-from typing import Any
+from typing import Any, ClassVar
 
 from sqlalchemy import (
     BigInteger,
@@ -28,7 +28,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(DeclarativeBase):
-    type_annotation_map = {dict[str, Any]: JSONB, list[Any]: JSONB}
+    type_annotation_map: ClassVar[dict[Any, Any]] = {dict[str, Any]: JSONB, list[Any]: JSONB}
 
 
 def _now() -> Any:
@@ -101,7 +101,9 @@ class Conversation(Base):
     status: Mapped[str] = mapped_column(String(20), default="open")  # open | closed
     window_ends_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[dt.datetime] = _now()
-    messages: Mapped[list[Message]] = relationship(back_populates="conversation", order_by="Message.received_at")
+    messages: Mapped[list[Message]] = relationship(
+        back_populates="conversation", order_by="Message.received_at"
+    )
 
 
 class Message(Base):
@@ -139,7 +141,9 @@ class SalesOrder(Base):
     confirmed_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     confirmed_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     first_viewed_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    lines: Mapped[list[OrderLine]] = relationship(back_populates="order", order_by="OrderLine.position", cascade="all, delete-orphan")
+    lines: Mapped[list[OrderLine]] = relationship(
+        back_populates="order", order_by="OrderLine.position", cascade="all, delete-orphan"
+    )
     __table_args__ = (Index("ix_orders_customer_date", "customer_id", "order_date"),)
 
 
@@ -178,7 +182,9 @@ class Job(Base):
     last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
     locked_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[dt.datetime] = _now()
-    updated_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_at: Mapped[dt.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
     __table_args__ = (Index("ix_jobs_ready", "status", "run_after"),)
 
 
