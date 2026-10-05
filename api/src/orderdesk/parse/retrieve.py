@@ -54,7 +54,9 @@ def candidates(world: World, customer: dict | None, source: str, product: str, s
     keys, fams = _index(world)
     hist = world.usual(customer["id"]) if customer else {}
     hist_fams = {world.skus[s]["family"] for s in hist}
-    queries = [q for q in {norm(product), norm(source)} if q]
+    queries = [
+        q for q in dict.fromkeys((norm(product), norm(source))) if q
+    ]  # ordered: runs must be reproducible
     fam_score: dict[str, float] = {}
     fam_exact: dict[str, bool] = {}
     for q in queries:
@@ -69,7 +71,9 @@ def candidates(world: World, customer: dict | None, source: str, product: str, s
     for f in fam_score:
         if f in hist_fams:
             fam_score[f] += 8  # the customer's own products win ties
-    top = sorted(fam_score, key=lambda f: -fam_score[f])[:k_families]
+    top = sorted(fam_score, key=lambda f: (-fam_score[f], f))[
+        :k_families
+    ]  # ties broken by key, not hash order
     want = _size_numbers(size or "") | (set() if size else set(numbers(source)))
     out: list[Candidate] = []
     for f in top:
@@ -88,7 +92,7 @@ def candidates(world: World, customer: dict | None, source: str, product: str, s
             )
     for c in out:
         c.score = c.family_score + (6 if c.size_match else 0) + (5 if c.in_history else 0)
-    out.sort(key=lambda c: -c.score)
+    out.sort(key=lambda c: (-c.score, c.sku))
     for i, c in enumerate(out):
         c.rank = i + 1
     return out

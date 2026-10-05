@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import json
+import os
+import subprocess
+import sys
 
 from orderdesk import config
 from orderdesk.parse.build import Resolved, build_draft
@@ -164,3 +167,12 @@ def test_fuzzy_fallback_reads_plain_lines_and_flags_everything():
     assert _sku("al_wadi", "500p") in got and got[_sku("al_wadi", "500p")].qty == 3
     assert _sku("sunola_sunflower", "1800") in got and got[_sku("sunola_sunflower", "1800")].unit == "piece"
     assert "needs_review" in d.holds and all(ln.confidence == 0 for ln in d.lines)
+
+
+def test_retrieval_is_identical_across_processes():
+    """Tie-breaking must not depend on hash order, or prompts (and the response cache) differ run to run."""
+    code = ("from orderdesk.parse.world import world; from orderdesk.parse.retrieve import candidates; w=world(); "
+            "print([c.sku for c in candidates(w, w.customers['C1002'], 'water 2 ctn', 'water', None)])")  # fmt: skip
+    outs = {subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env={**os.environ,
+            "PYTHONHASHSEED": str(seed)}).stdout for seed in (1, 2, 3)}  # fmt: skip
+    assert len(outs) == 1 and "SL-" in outs.pop()
