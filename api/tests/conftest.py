@@ -59,7 +59,9 @@ def db():
         )
         c.execute(text("DELETE FROM sales_orders WHERE status <> 'history'"))
         c.execute(
-            text("TRUNCATE messages, conversations, jobs, audit_log, erp.orders RESTART IDENTITY CASCADE")
+            text(
+                "TRUNCATE messages, media, conversations, jobs, audit_log, erp.orders RESTART IDENTITY CASCADE"
+            )
         )
         c.execute(text("DELETE FROM aliases WHERE source = 'learned'"))
         for cust in _world_json("customers"):

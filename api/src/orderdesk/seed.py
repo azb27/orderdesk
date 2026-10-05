@@ -88,9 +88,15 @@ def seed(s: Session, password: str) -> dict[str, int]:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--reset", action="store_true")
+    ap.add_argument(
+        "--if-empty", action="store_true", help="seed only if there are no products yet (container start)"
+    )
     a = ap.parse_args()
     password = os.environ.get("DEMO_PASSWORD", "orderdesk-demo")
     with session_scope() as s:
+        if a.if_empty and s.query(Product.id).first() is not None:
+            print("already seeded")
+            return
         if a.reset:
             reset(s)
         print(seed(s, password))

@@ -57,7 +57,13 @@ def extraction_content(messages: list[dict], customer: dict | None) -> list[dict
     content: list[dict] = [{"type": "text", "text": who + f"{len(messages)} message(s), oldest first."}]
     for i, m in enumerate(messages):
         content.append({"type": "text", "text": f"--- message {i} ({m.get('ts', '')}) ---"})
-        if m.get("type") == "image":
+        if m.get("type") == "image" and m.get("image_bytes"):
+            data = base64.standard_b64encode(m["image_bytes"]).decode()
+            block = {"type": "base64", "media_type": m.get("media_type", "image/jpeg"), "data": data}
+            content.append({"type": "image", "source": block})
+            if m.get("caption"):
+                content.append({"type": "text", "text": f"caption: {m['caption']}"})
+        elif m.get("type") == "image":
             content.append(_image_block(m["image"]))
             if m.get("caption"):
                 content.append({"type": "text", "text": f"caption: {m['caption']}"})

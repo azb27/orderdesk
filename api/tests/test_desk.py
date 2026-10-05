@@ -11,7 +11,7 @@ from sqlalchemy import func, select
 
 from orderdesk import desk
 from orderdesk.channels import whatsapp
-from orderdesk.db.models import Customer, ErpOrder, Job, Message
+from orderdesk.db.models import Customer, ErpOrder, Job, Message, SalesOrder
 from orderdesk.db.session import session_scope
 from orderdesk.jobs import queue
 from orderdesk.parse.llm import Scripted
@@ -321,3 +321,49 @@ def test_model_parse_records_cost_and_falls_back_when_the_api_fails(client, monk
     queue.drain()
     newest = client.get(f"/api/orders/{client.get('/api/orders').json()[0]['id']}").json()
     assert newest["parsed_by"] == "fallback" and "model unavailable" in newest["notes"][0]
+
+
+def test_a_photo_order_is_stored_in_postgres_and_reaches_the_desk(client):
+    from orderdesk import config  # noqa: PLC0415
+
+    jpg = (config.EVAL / "dev" / "images").glob("*.jpg").__next__().read_bytes()
+    r = client.post(
+        "/api/simulator/send",
+        data={"phone": PHONE, "text": "order 👆"},
+        files={"image": ("list.jpg", jpg, "image/jpeg")},
+    )
+    assert r.status_code == 200, r.text
+    assert (
+        client.post(
+            "/api/simulator/send", data={"phone": PHONE}, files={"image": ("x.gif", b"GIF89a", "image/gif")}
+        ).status_code
+        == 415
+    )
+    queue.drain()
+    login(client)
+    o = only_order(client)
+    assert o["lines"] == [] and any(
+        "photo" in n.lower() for n in o["notes"]
+    )  # no model in tests: a person keys it
+    photo = next(m for m in o["messages"] if m["type"] == "image")
+    img = client.get(f"/api/media/{photo['id']}")
+    assert img.status_code == 200 and img.content == jpg and img.headers["content-type"] == "image/jpeg"
+
+
+def test_demo_cleanup_forgets_old_visitor_data_but_keeps_history(client):
+    send(client, "al wadi water 500 ml 3 ctn")
+    queue.drain()
+    with session_scope() as s:
+        history = s.scalar(select(func.count(SalesOrder.id)).where(SalesOrder.status == "history"))
+        for o in s.scalars(select(SalesOrder).where(SalesOrder.status != "history")):
+            o.created_at = dt.datetime.now(dt.UTC) - dt.timedelta(days=5)
+        from orderdesk.db.models import Conversation  # noqa: PLC0415
+
+        for c in s.scalars(select(Conversation)):
+            c.created_at = dt.datetime.now(dt.UTC) - dt.timedelta(days=5)
+    with session_scope() as s:
+        gone = desk.demo_cleanup(s, days=3)
+    assert gone["orders"] == 1 and gone["conversations"] == 1
+    with session_scope() as s:
+        assert s.scalar(select(func.count(SalesOrder.id))) == history
+        assert s.scalar(select(func.count(Message.id))) == 0

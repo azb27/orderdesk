@@ -18,6 +18,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    LargeBinary,
     String,
     Text,
     UniqueConstraint,
@@ -114,10 +115,20 @@ class Message(Base):
     direction: Mapped[str] = mapped_column(String(3))  # in | out
     type: Mapped[str] = mapped_column(String(20))  # text | image | audio | other
     text: Mapped[str | None] = mapped_column(Text, nullable=True)
-    media_path: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    media_id: Mapped[str | None] = mapped_column(ForeignKey("media.id"), nullable=True)
     received_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))
     raw: Mapped[dict[str, Any]] = mapped_column(default=dict)
     conversation: Mapped[Conversation] = relationship(back_populates="messages")
+
+
+class Media(Base):
+    """Photos sent by retailers, kept in Postgres so they survive restarts on hosts with throwaway disks."""
+
+    __tablename__ = "media"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    content_type: Mapped[str] = mapped_column(String(40))
+    data: Mapped[bytes] = mapped_column(LargeBinary)
+    created_at: Mapped[dt.datetime] = _now()
 
 
 class SalesOrder(Base):

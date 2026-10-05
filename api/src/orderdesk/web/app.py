@@ -27,7 +27,17 @@ from sqlalchemy.orm import Session
 
 from orderdesk import config, desk
 from orderdesk.channels import whatsapp
-from orderdesk.db.models import AuditEvent, Conversation, Customer, Job, Message, Product, SalesOrder, User
+from orderdesk.db.models import (
+    AuditEvent,
+    Conversation,
+    Customer,
+    Job,
+    Media,
+    Message,
+    Product,
+    SalesOrder,
+    User,
+)
 from orderdesk.db.session import get_session, session_scope
 from orderdesk.erp.mock import router as erp_router
 from orderdesk.jobs.queue import Worker
@@ -41,6 +51,9 @@ STATIC = Path(os.environ.get("ORDERDESK_STATIC", config.ROOT / "web" / "dist"))
 
 @contextlib.asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    if os.environ.get("DEMO_MODE") == "1":
+        with session_scope() as s:
+            desk.demo_cleanup(s, int(os.environ.get("DEMO_RETENTION_DAYS", "3")))
     hub.start()
     worker = None
     if os.environ.get("ORDERDESK_WORKER", "1") == "1":
@@ -185,7 +198,7 @@ def get_order(
     if o.conversation_id:
         conv = s.get(Conversation, o.conversation_id)
         msgs = [{"id": m.id, "direction": m.direction, "type": m.type, "text": m.text, "at": m.received_at,
-                 "has_media": bool(m.media_path)} for m in conv.messages] if conv else []  # fmt: skip
+                 "has_media": bool(m.media_id)} for m in conv.messages] if conv else []  # fmt: skip
     hist = s.scalars(select(SalesOrder).where(SalesOrder.customer_id == o.customer_id, SalesOrder.status.in_(("history", "posted")), SalesOrder.id != o.id)
                      .order_by(SalesOrder.order_date.desc(), SalesOrder.id.desc()).limit(3)).all() if cust else []  # fmt: skip
     return order_summary(o, cust) | {
@@ -276,11 +289,14 @@ def search_products(q: str = "", limit: int = Query(12, le=50), s: Session = Dep
 @app.get("/api/media/{message_id}")
 def media(
     message_id: int, s: Session = Depends(get_session), _u: User = Depends(auth.current_user)
-) -> FileResponse:
+) -> Response:
     m = s.get(Message, message_id)
-    if m is None or not m.media_path:
+    blob = s.get(Media, m.media_id) if m and m.media_id else None
+    if blob is None:
         raise HTTPException(404, "no media")
-    return FileResponse(m.media_path)
+    return Response(
+        blob.data, media_type=blob.content_type, headers={"Cache-Control": "private, max-age=86400"}
+    )
 
 
 @app.get("/api/jobs")
@@ -414,7 +430,10 @@ async def sim_send(
             raise HTTPException(413, "image too large for the demo (3 MB)")
         if not data.startswith((b"\xff\xd8", b"\x89PNG")):
             raise HTTPException(415, "send a JPEG or PNG")
-        media_id = whatsapp.store_media(data, ".png" if data.startswith(b"\x89PNG") else ".jpg")
+        with session_scope() as s:
+            media_id = whatsapp.store_media(
+                s, data, "image/png" if data.startswith(b"\x89PNG") else "image/jpeg"
+            )
     elif not text.strip():
         raise HTTPException(422, "type a message or attach a photo")
     payload = whatsapp.build_payload(phone, text=text if media_id is None else None, media_id=media_id,

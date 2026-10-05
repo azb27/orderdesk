@@ -17,9 +17,9 @@ import secrets
 from dataclasses import dataclass
 from typing import Any
 
-from orderdesk import config
+from sqlalchemy.orm import Session
 
-MEDIA_DIR = config.RUNS / "media"
+from orderdesk.db.models import Media
 
 
 def app_secret() -> str:
@@ -97,20 +97,16 @@ def build_payload(phone: str, *, text: str | None = None, media_id: str | None =
         "contacts": [{"profile": {"name": name or "Retailer"}, "wa_id": frm}], "messages": [msg]}}]}]}  # fmt: skip
 
 
-def store_media(data: bytes, suffix: str = ".jpg") -> str:
-    """Simulator media store: what Meta's media endpoint would hand back for a media id."""
-    MEDIA_DIR.mkdir(parents=True, exist_ok=True)
+def store_media(s: Session, data: bytes, content_type: str = "image/jpeg") -> str:
+    """Simulator media store: what Meta's media endpoint would hand back for a media id (kept in Postgres)."""
     media_id = secrets.token_hex(16)
-    (MEDIA_DIR / f"{media_id}{suffix}").write_bytes(data)
+    s.add(Media(id=media_id, content_type=content_type, data=data))
+    s.flush()
     return media_id
 
 
-def media_path(media_id: str) -> str | None:
-    if not media_id.isalnum():
-        return None
-    for p in MEDIA_DIR.glob(f"{media_id}.*"):
-        return str(p)
-    return None
+def media_exists(s: Session, media_id: str) -> bool:
+    return media_id.isalnum() and s.get(Media, media_id) is not None
 
 
 class Sender:

@@ -14,18 +14,19 @@ import threading
 import time
 from typing import Any
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
 from orderdesk import config
 from orderdesk.channels import replies
-from orderdesk.channels.whatsapp import Inbound, Sender, media_path
+from orderdesk.channels.whatsapp import Inbound, Sender, media_exists
 from orderdesk.db.models import (
     Alias,
     AuditEvent,
     Conversation,
     Customer,
     Job,
+    Media,
     Message,
     OrderLine,
     Product,
@@ -103,9 +104,9 @@ def ingest(s: Session, inbound: list[Inbound]) -> list[int]:
             s.flush()
         else:
             conv.window_ends_at = max(conv.window_ends_at, m.timestamp + window)
-        path = media_path(m.media_id) if m.media_id else None
+        media_id = m.media_id if m.media_id and media_exists(s, m.media_id) else None
         msg = Message(wa_id=m.wa_id, conversation_id=conv.id, direction="in", type=m.type, text=m.text or m.caption,
-                      media_path=path, received_at=m.timestamp, raw=m.raw)  # fmt: skip
+                      media_id=media_id, received_at=m.timestamp, raw=m.raw)  # fmt: skip
         s.add(msg)
         s.flush()
         new_ids.append(msg.id)
@@ -137,15 +138,11 @@ def _parse(s: Session, w: World, msgs: list[Message], phone: str) -> tuple[Draft
     """The model pipeline when allowed and working; otherwise the fuzzy fallback, flagged for review."""
     plain = []
     for m in msgs:
-        if m.type == "image" and m.media_path:
-            plain.append(
-                {
-                    "type": "image",
-                    "image": m.media_path,
-                    "caption": m.text or "",
-                    "ts": m.received_at.isoformat(),
-                }
-            )
+        if m.type == "image" and m.media_id:
+            media = s.get(Media, m.media_id)
+            plain.append({"type": "image", "image_bytes": media.data if media else b"",
+                          "media_type": media.content_type if media else "image/jpeg",
+                          "caption": m.text or "", "ts": m.received_at.isoformat()})  # fmt: skip
         else:
             plain.append(
                 {
@@ -502,3 +499,30 @@ def draft_dict(d: Draft) -> dict[str, Any]:
 
 
 __all__ = ["DeskError", "confirm", "edit_lines", "ingest", "reject", "score_lines", "teach_alias"]
+
+
+def demo_cleanup(s: Session, days: int) -> dict[str, int]:
+    """Public demo housekeeping: forget visitors' conversations and drafts older than `days` (history stays)."""
+    cutoff = dt.datetime.now(dt.UTC) - dt.timedelta(days=days)
+    old_orders = s.scalars(
+        select(SalesOrder).where(SalesOrder.status != "history", SalesOrder.created_at < cutoff)
+    ).all()
+    for o in old_orders:
+        s.delete(o)
+    s.flush()
+    old_convs = s.scalars(select(Conversation).where(Conversation.created_at < cutoff)).all()
+    n_msgs = 0
+    for c in old_convs:
+        for m in list(c.messages):
+            s.delete(m)
+            n_msgs += 1
+        s.delete(c)
+    s.flush()
+    s.execute(
+        text(
+            "DELETE FROM media WHERE created_at < :c AND id NOT IN (SELECT media_id FROM messages WHERE media_id IS NOT NULL)"
+        ),
+        {"c": cutoff},
+    )
+    s.execute(text("DELETE FROM jobs WHERE status = 'done' AND updated_at < :c"), {"c": cutoff})
+    return {"orders": len(old_orders), "conversations": len(old_convs), "messages": n_msgs}
