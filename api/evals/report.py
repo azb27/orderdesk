@@ -53,6 +53,21 @@ def load_runs(split: str, truth: dict[str, dict]) -> dict[str, dict[str, dict]]:
     return out
 
 
+def fixes_fired(rows: dict[str, dict]) -> tuple[int, int, int, int]:
+    """(size-from-history lines, of them right, conversations with a removal note, of them exactly right)."""
+    sz = szr = rm = rme = 0
+    for r in rows.values():
+        right = r["score"]["pred_right"]
+        for ln in r["lines"]:
+            if "size_from_history" in (ln.get("flags") or []):
+                sz += 1
+                szr += bool(right.get(ln["sku"]))
+        if any(n.startswith("Removed ") for n in r.get("notes") or []):
+            rm += 1
+            rme += bool(r["score"]["exact"])
+    return sz, szr, rm, rme
+
+
 def load_archive(tag: str, split: str, truth: dict[str, dict]) -> dict[str, dict[str, dict]]:
     out = {}
     for name in LABELS:
@@ -427,14 +442,25 @@ def main() -> None:
             L.append(
                 f"| {LABELS[n]} | {split} | {g['flagged_right']} | {g['flagged_wrong']} | {100 * g['risk_caught']:.0f}% |"
             )
+
     # what the failure analysis changed
+    def fired_lines() -> list[str]:
+        out = []
+        for split, rs in (("dev", load_runs("dev", load_truth("dev"))), ("test", runs), ("gold", gold)):
+            if "sonnet" in rs:
+                sz, szr, rm, rme = fixes_fired(rs["sonnet"])
+                out.append(f"- Sonnet, {split}: size taken from history on {sz} lines ({szr} right); a removal note on "
+                           f"{rm} conversation{'' if rm == 1 else 's'} ({rme} exactly right).")  # fmt: skip
+        return [*out, ""]
+
     L += ["", "## What the failure analysis changed", "",
           "The first full runs are archived in `runs/evals/_archive/v1/`. Reading their errors (`docs/results/failures.md`, and "
           "`docs/engagement/failure-analysis.md` for the write-up) led to three fixes in code. No prompt changed:", "",
           "1. **Size from history.** When no size is written and the customer has only ever bought one size of the chosen product, "
           "use that size (`size_from_history` flag). The resolve prompt already said this; the model didn't always follow it.",
-          "2. **Removals by product, not size.** \"No milk\" on a repeat order removes the milk they had last time, even if the model "
-          "picked a different size of it.",
+          "2. **A removal drops what's on the order.** If the model named another size of the product, or couldn't choose, "
+          "the one order line in that product family goes: the family of its pick, or of the top three retrieval candidates. "
+          "The draft says so in a note.",
           "3. **One retry for an unusable extraction** (no intent, or every line invalid), with the validation errors as the reason. "
           "A second bad answer still leaves the order to a person.", "",
           "Every unchanged model call was a cache hit: `python -m evals.run --config <name> --split <split> --rebuild <tag>` "
@@ -442,6 +468,7 @@ def main() -> None:
           "motivated the fixes were read on dev, test and the hand-written set, so none of them is a clean holdout for these "
           "changes. Dev moves the same way as test. On the hand-written set the retry recovers one conversation, and its lines "
           "are not all right. Fuzzy matching doesn't move: two of the fixes live in the model pipeline, and none of its removals named a different size.", "",
+          *fired_lines(),
           "| Configuration | Split | Lines correct, first run | After fixes | Orders exactly right, first run | After fixes | Lines only first run got right | Only after fixes | p |",
           "|---|---|---:|---:|---:|---:|---:|---:|---:|"]  # fmt: skip
     for split in ("dev", "test", "gold"):

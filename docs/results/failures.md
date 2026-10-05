@@ -10,7 +10,7 @@ Each error traced back through the pipeline. Candidates are recomputed from the 
 |---|---:|---:|---:|
 | choice: the right product was a candidate, the model picked another or none | 59 | 26 | 85 |
 | quantity or unit read wrong (right product) | 22 | 9 | 31 |
-| extra line: the draft has a product nobody ordered | 16 | 4 | 20 |
+| extra line: the draft has a product nobody ordered | 10 | 4 | 14 |
 | retrieval: the line was read, the right product wasn't offered | 6 | 1 | 7 |
 | reading: the line wasn't extracted from the message | 1 | 0 | 1 |
 
@@ -110,33 +110,6 @@ Each error traced back through the pipeline. Candidates are recomputed from the 
 - Ordered: Barari Laban Low Fat 1 L, 4 carton (written as “lassi laban kam fat”, Roman Hindi/Urdu)
 - Drafted: Barari Laban Low Fat 1 L, 14 carton from “lassi laban kam fat 14 carton bhejo” — model: “low fat laban, no size given -> usual size 1 L”
 
-## extra line (not ordered) (20)
-
-**test-004** (text, order)
-> 9aba7 el 5air law sama7t ersel ⏎ 3aish masri 2 4 akyas ⏎ 1 krtn burtu2al 500ml ⏎ shukran
-
-- Drafted: Tannour White Sliced Bread 600 g loaf, 4 piece from “3aish masri 2 4 akyas” — model: “'3aish masri' = Egyptian bread = white sliced bread loaf; no size given, matches usual white sliced bread”
-
-**test-036** (text, usual)
-> last week wala order same bhejo lekin anda brown nahi chahiye
-
-- Drafted: Farm Fresh Brown Eggs tray of 30, 3 piece from “last order SO-501248”
-
-**test-123** (text, order)
-> 9aba7 el 5air nabi bukra ⏎ 10 kartoon 6aqa 500 ml ⏎ elwadi mai 1.5 litre 3 kartoon ⏎ tayeb
-
-- Drafted: Al Wadi Water 500 ml bottle, 10 carton from “10 kartoon 6aqa 500 ml” — model: “Taqa water 500 ml = Al Wadi Water 500 ml bottle”
-
-**test-162** (text, order)
-> namaste ji maal bhejo ⏎ 2 paketa niboo dait 330 ml ⏎ sunfield mix fruit juice ki 4 peti ⏎ 1 peti sunflower tel 1.8l ⏎ شد كولا دايت 500ml ٦ ⏎ shimmer normal 500 ml ki 1 ⏎ wafer 38 g paanch petti ⏎ 2 ctn santra soda 250
-
-- Drafted: Al Wadi Water 500 ml bottle, 1 carton from “shimmer normal 500 ml ki 1” — model: “'shimmer normal' likely means plain drinking water, not dishwash; 500ml size matches Al Wadi Water bottle, closest 'normal' water brand”
-
-**test-233** (text, order)
-> 9aba7 el 5air nabi bukra ⏎ 6aqa bdoon sukkar 5 karton ⏎ cola zero 500ml arba3a habba ⏎ zait thura 1.5 litre 6 7aba ⏎ zero wa7da krtn ⏎ yesalmo
-
-- Drafted: Barari Laban Low Fat 250 ml, 5 carton from “6aqa bdoon sukkar 5 karton” — model: “'6aqa/laban bdoon sukkar' = sugar-free laban; 'Barari Laban Low Fat' closest match to sugar-free intent, no size given so defaulted to common 250 ml carton size”
-
 ## wrong size (19)
 
 **test-003** (text, order)
@@ -168,6 +141,33 @@ Each error traced back through the pipeline. Candidates are recomputed from the 
 
 - Ordered: Sparkle Up Diet 1.25 L bottle, 2 carton (written as “lemon drink light”, English)
 - Drafted: Sparkle Up Diet 2.25 L bottle, 2 carton from “lemon drink light 1.25l - 2 carton” — model: “wrote 'lemon drink light 1.25l' - diet Sparkle Up Lemon-Lime variant is called Diet, size 1.25 L matches SL-10210”
+
+## extra line (not ordered) (14)
+
+**test-004** (text, order)
+> 9aba7 el 5air law sama7t ersel ⏎ 3aish masri 2 4 akyas ⏎ 1 krtn burtu2al 500ml ⏎ shukran
+
+- Drafted: Tannour White Sliced Bread 600 g loaf, 4 piece from “3aish masri 2 4 akyas” — model: “'3aish masri' = Egyptian bread = white sliced bread loaf; no size given, matches usual white sliced bread”
+
+**test-019** (text, order)
+> namaste ji maal bhejo ⏎ 10 habba 7amdiyat 500 ⏎ 2 pcs brite kapde ka powder 3 ⏎ our rice 12 peti ⏎ tomato sauce 3 nag ⏎ 10 ctn klenzo bleach ⏎ chocolate biscuit 180 g char petti ⏎ 2 ctn paani 330ml ⏎ orange juice 5 petti bhejo ⏎ 24 chakki atta 5kg ⏎ chips cheese 45g 5 petti ⏎ 3 paketa biskito vanilla biscuit 40 g ⏎ jaldi bhejna
+
+- Drafted: Al Wadi Water 500 ml bottle, 10 piece from “10 habba 7amdiyat 500” — model: “'Hamdiya' water nickname likely refers to Al Wadi Water; 500 ml bottle matches size written”
+
+**test-104** (text, order)
+> صباح الخير الطلب: ⏎ 1. ٦ بطاطس طماطم ⏎ - قطعة فولت بدون سكر علبة كبيرة 30 ⏎ 3. صنولا زيت نباتي 8 حبة ⏎ الله يعطيك العافية
+
+- Drafted: Rosso Tomato Ketchup 340 g bottle, 6 carton from “٦ بطاطس طماطم” — model: “potato tomato unclear; closest is tomato ketchup, no clear match”
+
+**test-130** (text, order)
+> Hi boss Please send tomorrow ⏎ tables alt 700 x2 cartons ⏎ royale calrose 2 kg dozen ctn ⏎ 3 sack red lentils ⏎ five bread white ⏎ royale basmati 1kg - 2 carton ⏎ sella rice two ctns ⏎ naw acola - 6 ⏎ urgent
+
+- Drafted: Al Wadi Water 4 gallon (18.9 L), 2 piece from “tables alt 700 x2 cartons” — model: “wrote 'tables alt water 700' - no exact 700ml match; Al Wadi gallon is closest brand/product guess but size unclear”
+
+**test-160** (image, order)
+> [photo of a handwritten list: `data/eval/test/images/test-160.jpg`]
+
+- Drafted: Al Wadi Sparkling Water 330 ml glass, 6 carton from “سباركل ليمون غازي 6” — model: “Sparkle + lemon + gazi (sparkling) suggests Al Wadi sparkling water lemon, no size given, closest common size 330ml”
 
 ## wrong unit (carton vs pack vs piece) (10)
 

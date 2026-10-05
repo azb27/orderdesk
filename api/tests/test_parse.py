@@ -242,3 +242,15 @@ def test_an_invalid_extraction_is_retried_once_then_left_for_a_person():
     bad = Scripted([{"lines": []}, {"intent": "order", "lines": [{"source": "x"}]}])
     r2 = parse_conversation(msgs, C["phone"], bad, Scripted([]))
     assert r2.draft.lines == [] and len(bad.requests) == 2
+
+
+def test_a_removal_the_model_could_not_place_uses_the_top_candidates_family():
+    last = W.last_order(C["id"])
+    target = next(
+        ln["sku"]
+        for ln in last["lines"]
+        if sum(W.skus[x["sku"]]["family"] == W.skus[ln["sku"]]["family"] for x in last["lines"]) == 1
+    )
+    r = Resolved(None, None, None, "remove", "no x", candidates=[target])
+    d = build_draft(W, C, "repeat_last_order", [r], repeat_last=True)
+    assert target not in {ln.sku for ln in d.lines} and not any("unresolved" in ln.flags for ln in d.lines)

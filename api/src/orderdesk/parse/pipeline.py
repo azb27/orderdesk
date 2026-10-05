@@ -221,7 +221,8 @@ def parse_conversation(messages: list[dict], phone: str, extract_model: ToolMode
                  "nickname": bool(chosen and chosen.score >= 200), "n_candidates": len(cands),
                  "size_given": ln["size"] is not None, "unit_given": ln["unit"] is not None,
                  "from_image": messages[ln["message"]].get("type") == "image", "model": ch.get("confidence", "low"),
-                 "repeat": ext["intent"] == "repeat_last_order", "size_from_history": size_from_history}  # fmt: skip
+                 "repeat": ext["intent"] == "repeat_last_order", "size_from_history": size_from_history,
+                 "retrieval": mode != "all"}  # fmt: skip
         r = Resolved(sku, ln["quantity"], ln["unit"], ln["action"], ln["source"], ln["message"], ln["product"],
                      ch.get("confidence", "low"), ch.get("why", ""), [c.sku for c in cands[:8]], feats)  # fmt: skip
         resolved.append(r)

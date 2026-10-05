@@ -111,7 +111,7 @@ def main() -> None:
                     r.draft.intent,
                     r.meter.cost_usd,
                 )
-                extra = {"extraction": r.extraction, "errors": r.errors, "holds": r.draft.holds, "llm_calls": r.meter.calls,
+                extra = {"extraction": r.extraction, "errors": r.errors, "holds": r.draft.holds, "notes": r.draft.notes, "llm_calls": r.meter.calls,
                          "llm_seconds": round(r.meter.seconds, 2), "cached": r.meter.cached}  # fmt: skip
         except (
             Exception

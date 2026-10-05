@@ -120,20 +120,29 @@ def build_draft(
     # 2. apply each line in message order: add, set or remove
     unresolved: list[DraftLine] = []
     for r in resolved:
+        if r.action == "remove" and order:
+            # Only what's on the order can be removed. If the model named another size of it, or couldn't choose,
+            # drop the one order line in the same product family as its pick or the top candidates, if exactly one.
+            known = r.sku if r.sku in world.skus else None
+            if known in order:
+                order.pop(known)
+                continue
+            ranked = (
+                r.candidates[:3] if r.features.get("retrieval", True) else []
+            )  # a whole-catalogue list isn't ranked
+            fams = {world.skus[k]["family"] for k in ([known] if known else ranked) if k in world.skus}
+            same = [k for k in order if world.skus[k]["family"] in fams]
+            if len(same) == 1:
+                order.pop(same[0])
+                notes.append(f"Removed {world.skus[same[0]]['name_en']}: they asked to drop {r.source!r}.")
+                continue
+            if known:
+                continue
         if r.sku is None or r.sku not in world.skus:
             unresolved.append(DraftLine(None, int(r.qty or 0), r.unit or "piece", 0, 0, 0, r.source, "customer",
                                         ["unresolved"], evidence={"product": r.product, "why": r.why, "candidates": r.candidates}))  # fmt: skip
             continue
         if r.action == "remove":
-            if r.sku in order:
-                order.pop(r.sku)
-            else:  # "no milk" when last order had a different size of it: remove that one, if it's the only one
-                same = [k for k in order if world.skus[k]["family"] == world.skus[r.sku]["family"]]
-                if len(same) == 1:
-                    order.pop(same[0])
-                    notes.append(
-                        f"Removed {world.skus[same[0]]['name_en']}: they asked to drop {r.source!r}."
-                    )
             continue
         if r.qty is None or r.qty <= 0 or r.qty != int(r.qty):
             unresolved.append(DraftLine(r.sku, 0, r.unit or "piece", 0, 0, 0, r.source, "customer", ["bad_quantity"],
