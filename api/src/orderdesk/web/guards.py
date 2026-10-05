@@ -6,6 +6,7 @@ to Postgres or the load balancer.
 
 from __future__ import annotations
 
+import os
 import threading
 import time
 
@@ -16,8 +17,12 @@ _lock = threading.Lock()
 
 
 def client_ip(request: Request) -> str:
+    """The visitor's address. Behind a proxy (TRUST_PROXY=1) it is the last X-Forwarded-For entry, the one
+    the proxy appended; earlier entries come from the client and can be forged to dodge the rate limit."""
     fwd = request.headers.get("x-forwarded-for")
-    return fwd.split(",")[0].strip() if fwd else (request.client.host if request.client else "unknown")
+    if fwd and os.environ.get("TRUST_PROXY") == "1":
+        return fwd.split(",")[-1].strip()
+    return request.client.host if request.client else "unknown"
 
 
 def rate_limit(request: Request, name: str, per_minute: int) -> None:

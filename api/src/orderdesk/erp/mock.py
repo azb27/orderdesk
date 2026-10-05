@@ -9,6 +9,7 @@ key keeps the retry from booking it twice.
 
 from __future__ import annotations
 
+import hashlib
 import threading
 import time
 from typing import Any
@@ -21,7 +22,16 @@ from sqlalchemy.orm import Session
 from orderdesk.db.models import ErpOrder
 from orderdesk.db.session import get_session
 
-router = APIRouter(prefix="/erp-mock/v1", tags=["mock ERP"])
+LOCAL = ("127.0.0.1", "::1", "testclient")
+
+
+def local_only(request: Request) -> None:
+    """The mock stands in for a separate system on a private network: only this process may call it."""
+    if not request.client or request.client.host not in LOCAL:
+        raise HTTPException(403, "the mock ERP only answers this server")
+
+
+router = APIRouter(prefix="/erp-mock/v1", tags=["mock ERP"], dependencies=[Depends(local_only)])
 
 
 class Faults(BaseModel):
@@ -45,9 +55,7 @@ def _take(field: str) -> bool:
 
 
 @router.post("/faults")
-def set_faults(f: Faults, request: Request) -> dict[str, Any]:
-    if request.client and request.client.host not in ("127.0.0.1", "::1", "testclient"):
-        raise HTTPException(403, "fault injection is local-only")
+def set_faults(f: Faults) -> dict[str, Any]:
     global _faults
     with _lock:
         _faults = f
@@ -67,7 +75,7 @@ def create_sales_order(payload: dict[str, Any], idempotency_key: str = Header(..
         insert(ErpOrder)
         .values(
             idempotency_key=idempotency_key,
-            erp_ref=f"ERP-{abs(hash(idempotency_key)) % 10**9:09d}",
+            erp_ref="ERP-" + hashlib.sha256(idempotency_key.encode()).hexdigest()[:10].upper(),
             payload=payload,
         )
         .on_conflict_do_nothing(index_elements=["idempotency_key"])

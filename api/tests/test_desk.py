@@ -8,6 +8,7 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import func, select
+from starlette.requests import Request
 
 from orderdesk import desk
 from orderdesk.channels import whatsapp
@@ -16,6 +17,7 @@ from orderdesk.db.session import session_scope
 from orderdesk.jobs import queue
 from orderdesk.parse.llm import Scripted
 from orderdesk.web.app import app
+from orderdesk.web.guards import client_ip
 
 PHONE = "+971500001004"  # C1004, an English-writing baqala in the seed data
 H = {"X-Orderdesk": "1"}
@@ -367,3 +369,21 @@ def test_demo_cleanup_forgets_old_visitor_data_but_keeps_history(client):
     with session_scope() as s:
         assert s.scalar(select(func.count(SalesOrder.id))) == history
         assert s.scalar(select(func.count(Message.id))) == 0
+
+
+def test_mock_erp_refuses_callers_other_than_this_server(client):
+    outsider = TestClient(app, client=("203.0.113.9", 4000))
+    assert outsider.post("/erp-mock/v1/faults", json={"fail_next": 99}).status_code == 403
+    r = outsider.post("/erp-mock/v1/sales-orders", json={"lines": [1]}, headers={"Idempotency-Key": "x"})
+    assert r.status_code == 403
+
+
+def test_rate_limit_uses_the_address_the_proxy_appended(monkeypatch):
+    def req(xff: str) -> Request:
+        return Request(
+            {"type": "http", "headers": [(b"x-forwarded-for", xff.encode())], "client": ("10.0.0.1", 1)}
+        )
+
+    assert client_ip(req("1.1.1.1, 9.9.9.9")) == "10.0.0.1"  # not behind a trusted proxy: ignore the header
+    monkeypatch.setenv("TRUST_PROXY", "1")
+    assert client_ip(req("1.1.1.1, 9.9.9.9")) == "9.9.9.9"  # a forged first entry doesn't change the key
