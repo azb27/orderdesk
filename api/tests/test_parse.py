@@ -228,3 +228,17 @@ def test_removing_a_size_they_did_not_order_last_time_removes_the_one_they_did()
         W, C, "repeat_last_order", [Resolved(sibling, None, None, "remove", "no x")], repeat_last=True
     )
     assert target not in {ln.sku for ln in d.lines} and any("Removed" in n for n in d.notes)
+
+
+def test_an_invalid_extraction_is_retried_once_then_left_for_a_person():
+    good = _ext(("santra soda 330 2 peti", "orange soda", "330", 2, "carton", "add"))
+    want = _sku("mirage_orange", "330c")
+    pick = {"choices": [{"line": 0, "sku": want, "confidence": "high", "why": "santra = orange"}]}
+    msgs = [{"type": "text", "text": "santra soda 330 2 peti"}]
+    ext = Scripted([{"lines": []}, good])  # first answer has no intent
+    r = parse_conversation(msgs, C["phone"], ext, Scripted([pick]))
+    assert r.draft.lines[0].sku == want and "extraction retried once" in r.errors
+    assert "invalid" in ext.requests[1]["content"][-1]["text"]
+    bad = Scripted([{"lines": []}, {"intent": "order", "lines": [{"source": "x"}]}])
+    r2 = parse_conversation(msgs, C["phone"], bad, Scripted([]))
+    assert r2.draft.lines == [] and len(bad.requests) == 2

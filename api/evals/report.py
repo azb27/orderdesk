@@ -430,14 +430,18 @@ def main() -> None:
     # what the failure analysis changed
     L += ["", "## What the failure analysis changed", "",
           "The first full runs are archived in `runs/evals/_archive/v1/`. Reading their errors (`docs/results/failures.md`, and "
-          "`docs/engagement/failure-analysis.md` for the write-up) led to two fixes in code, not in prompts:", "",
+          "`docs/engagement/failure-analysis.md` for the write-up) led to three fixes in code. No prompt changed:", "",
           "1. **Size from history.** When no size is written and the customer has only ever bought one size of the chosen product, "
           "use that size (`size_from_history` flag). The resolve prompt already said this; the model didn't always follow it.",
-          "2. **Removals by product, not size.** \"No milk\" on a repeat order removes the milk they had last time even if the model "
-          "picked a different size of it.", "",
-          "Prompts are unchanged, so every model call was a cache hit: `python -m evals.run --config <name> --split <split> --rebuild v1` "
-          "re-measures the same model outputs with the new code. **Caveat:** the errors that motivated the fixes were read on dev and test, "
-          "so the test gain is not a clean holdout. Dev moves the same way. The hand-written set doesn't move: none of its lines hit either case. Fuzzy matching doesn't move: the size rule lives in the model pipeline, and none of its removals picked a different size.", "",
+          "2. **Removals by product, not size.** \"No milk\" on a repeat order removes the milk they had last time, even if the model "
+          "picked a different size of it.",
+          "3. **One retry for an unusable extraction** (no intent, or every line invalid), with the validation errors as the reason. "
+          "A second bad answer still leaves the order to a person.", "",
+          "Every unchanged model call was a cache hit: `python -m evals.run --config <name> --split <split> --rebuild <tag>` "
+          "re-measures the same model outputs with the new code, and only the retries cost anything. **Caveat:** the errors that "
+          "motivated the fixes were read on dev, test and the hand-written set, so none of them is a clean holdout for these "
+          "changes. Dev moves the same way as test. On the hand-written set the retry recovers one conversation, and its lines "
+          "are not all right. Fuzzy matching doesn't move: two of the fixes live in the model pipeline, and none of its removals named a different size.", "",
           "| Configuration | Split | Lines correct, first run | After fixes | Orders exactly right, first run | After fixes | Lines only first run got right | Only after fixes | p |",
           "|---|---|---:|---:|---:|---:|---:|---:|---:|"]  # fmt: skip
     for split in ("dev", "test", "gold"):

@@ -101,6 +101,12 @@ def validate_extraction(x: dict, n_messages: int) -> tuple[dict, list[str]]:
     }, errs
 
 
+def _unusable(raw: dict, ext: dict, errors: list[str]) -> bool:
+    """The answer can't be used: no valid intent, or it had lines and none survived validation."""
+    bad_intent = any(e.startswith("bad intent") for e in errors)
+    return bad_intent or (bool(raw.get("lines")) and not ext["lines"])
+
+
 def _nickname_candidates(w: World, customer: dict | None, source: str, product: str) -> list[Candidate]:
     out = []
     for nick, sku in (customer or {}).get("nicknames", {}).items():
@@ -129,9 +135,20 @@ def parse_conversation(messages: list[dict], phone: str, extract_model: ToolMode
     w = w or world()
     meter = Meter()
     customer = w.customer_by_phone(phone)
-    raw, usage = extract_model.call(EXTRACT_SYSTEM, extraction_content(messages, customer), EXTRACT_TOOL)
+    content = extraction_content(messages, customer)
+    raw, usage = extract_model.call(EXTRACT_SYSTEM, content, EXTRACT_TOOL)
     meter.add(usage)
     ext, errors = validate_extraction(raw, len(messages))
+    if _unusable(raw, ext, errors):
+        # One retry with the reason, never a repair: a second invalid answer leaves the order for a person.
+        nudge = {"type": "text", "text": "Your record_order call was invalid (" + "; ".join(errors[:3]) + "). "
+                 "Call record_order again with intent set and every line's product filled in."}  # fmt: skip
+        raw2, usage = extract_model.call(EXTRACT_SYSTEM, [*content, nudge], EXTRACT_TOOL)
+        meter.add(usage)
+        ext2, errors2 = validate_extraction(raw2, len(messages))
+        errors = [*errors, "extraction retried once", *errors2]
+        if not _unusable(raw2, ext2, errors2):
+            ext = ext2
     if ext["intent"] == "not_order" or not ext["lines"]:
         draft = build_draft(w, customer, ext["intent"], [], repeat_last=ext["intent"] == "repeat_last_order")
         return ParseResult(draft, ext, [], meter, errors)

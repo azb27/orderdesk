@@ -125,11 +125,10 @@ def main() -> None:
                           "features": (ln.get("evidence") or {}).get("features"), "why": (ln.get("evidence") or {}).get("why")} for ln in lines],
                "cost_usd": cost, "latency_s": round(time.perf_counter() - t0, 2), "error": err, **extra}  # fmt: skip
         old = prev.get(c["id"])
-        if old and extra.get("cached") == extra.get(
-            "llm_calls"
-        ):  # nothing new was paid for: keep the first run's
-            row.update(cost_usd=old.get("cost_usd", 0.0), latency_s=old.get("latency_s"), llm_seconds=old.get("llm_seconds"),
-                       cached=old.get("cached", 0), rebuilt=True)  # fmt: skip
+        # cached calls cost nothing now: keep the first run's cost and time, plus whatever was paid for fresh
+        if old:
+            row.update(cost_usd=old.get("cost_usd", 0.0) + cost, latency_s=old.get("latency_s"),
+                       llm_seconds=old.get("llm_seconds"), rebuilt=True)  # fmt: skip
         with _lock:
             spent += cost
             with out.open("a") as f:
