@@ -17,6 +17,9 @@ runs/*
 !runs/evals/
 runs/evals/*/*
 !runs/evals/*/results.jsonl
+!runs/evals/_archive/*/
+runs/evals/_archive/*/*/*
+!runs/evals/_archive/*/*/results.jsonl
 # secrets: never commit
 .env
 *.env

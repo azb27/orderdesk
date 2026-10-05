@@ -53,6 +53,9 @@ def main() -> None:
     ap.add_argument("--budget", type=float, default=10.0)
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--limit", type=int)
+    ap.add_argument("--rebuild", metavar="TAG", help="archive the current results under runs/evals/_archive/TAG and run "
+                    "everything again; with unchanged prompts every model call is a cache hit, so this re-measures code "
+                    "changes for $0 and keeps each row's first-run cost and time")  # fmt: skip
     a = ap.parse_args()
     cfg = dict(CONFIGS[a.config])
     name = a.config
@@ -67,6 +70,14 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     out = out_dir / "results.jsonl"
     done = {json.loads(x)["id"]: json.loads(x) for x in out.read_text().splitlines()} if out.exists() else {}
+    prev: dict[str, dict] = {}
+    if a.rebuild and done:
+        arch = config.RUNS / "evals" / "_archive" / a.rebuild / f"{name}-{a.split}"
+        arch.mkdir(parents=True, exist_ok=True)
+        (arch / "results.jsonl").write_text(out.read_text())
+        prev, done = done, {}
+        out.write_text("")
+        print(f"archived {len(prev)} rows to {arch}", flush=True)
     retry = [k for k, r in done.items() if r.get("error")]
     if retry:  # API failures are not results: drop them so they run again
         done = {k: r for k, r in done.items() if not r.get("error")}
@@ -113,6 +124,12 @@ def main() -> None:
                "lines": [{**{k: ln[k] for k in ("sku", "qty", "unit", "qty_base", "confidence", "flags", "source", "unit_from")},
                           "features": (ln.get("evidence") or {}).get("features"), "why": (ln.get("evidence") or {}).get("why")} for ln in lines],
                "cost_usd": cost, "latency_s": round(time.perf_counter() - t0, 2), "error": err, **extra}  # fmt: skip
+        old = prev.get(c["id"])
+        if old and extra.get("cached") == extra.get(
+            "llm_calls"
+        ):  # nothing new was paid for: keep the first run's
+            row.update(cost_usd=old.get("cost_usd", 0.0), latency_s=old.get("latency_s"), llm_seconds=old.get("llm_seconds"),
+                       cached=old.get("cached", 0), rebuilt=True)  # fmt: skip
         with _lock:
             spent += cost
             with out.open("a") as f:
