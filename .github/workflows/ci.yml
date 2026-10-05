@@ -60,3 +60,53 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [api, web]
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: orderdesk
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_DB: orderdesk
+        ports: ["5433:5432"]
+        options: >-
+          --health-cmd "pg_isready -U orderdesk" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://orderdesk@127.0.0.1:5433/orderdesk
+      PARSE_DELAY_S: "1"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: api/pyproject.toml
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Database and demo data
+        working-directory: api
+        run: |
+          pip install -e .
+          alembic upgrade head
+          python -m orderdesk.seed --reset
+      - name: Build the UI
+        working-directory: web
+        run: npm ci && npm run build && npx playwright install --with-deps chromium
+      - name: Start Orderdesk (no model key: the fallback parser reads orders)
+        working-directory: api
+        run: |
+          nohup uvicorn orderdesk.web.app:app --port 8000 > server.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf localhost:8000/healthz && break; sleep 1; done
+      - name: End-to-end tests
+        working-directory: web
+        run: npx playwright test
+      - name: Server log on failure
+        if: failure()
+        run: tail -100 api/server.log

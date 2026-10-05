@@ -1,40 +1,71 @@
-/* Design tokens. Every colour, size and radius in the app comes from here. */
+/* Orderdesk tokens. The look borrows from a Gulf trader's carbon-copy order book: recycled paper,
+   ballpoint ink, carbon-blue actions, the pink of the duplicate copy for lines that need a person,
+   and a green rubber stamp for confirmed orders. Every colour, size and radius comes from here. */
 :root {
-  --font-sans: "Inter", "Noto Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
-  --bg: #f6f5f1;
-  --surface: #ffffff;
-  --surface-2: #efede7;
-  --ink: #1c1b18;
-  --ink-2: #57544c;
-  --line: #dcd8ce;
-  --accent: #0f6b5c;
-  --accent-ink: #ffffff;
-  --warn: #9a5b00;
-  --danger: #b3261e;
-  --ok: #1e6b3a;
-  --radius: 8px;
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 2px 8px rgb(0 0 0 / 0.04);
-  color-scheme: light dark;
+  --font-sans: "IBM Plex Sans", "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --font-ar: "IBM Plex Sans Arabic", "IBM Plex Sans", system-ui, sans-serif;
+  --font-stamp: "IBM Plex Sans Condensed", "IBM Plex Sans", sans-serif;
+
+  --paper: #f1f3ef;
+  --sheet: #fbfcfa;
+  --sheet-2: #e7ebe5;
+  --rule: #cfd6cd;
+  --rule-strong: #a9b4a8;
+  --ink: #1d2a35;
+  --ink-2: #4c5a64;
+  --ink-3: #6f7b83;
+  --carbon: #2b4fa0;
+  --carbon-ink: #ffffff;
+  --carbon-wash: #e3e9f7;
+  --dup: #a3264d;
+  --dup-wash: #f7e1e8;
+  --stamp: #1f7a4d;
+  --stamp-wash: #dcefe4;
+  --amber: #a5670f;
+  --amber-wash: #f6ead2;
+  --bubble-in: #ffffff;
+  --bubble-out: #dde8f6;
+
+  --step--1: 0.8125rem;
+  --step-0: 0.9375rem;
+  --step-1: 1.125rem;
+  --step-2: 1.5rem;
+  --step-3: 2rem;
+  --lh: 1.45;
+
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --r-control: 4px;
+  --r-pane: 10px;
+  --pad-rule: 36px; /* height of one ruled line on the order pad */
+  color-scheme: light;
 }
+
 @media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #141412;
-    --surface: #1c1c19;
-    --surface-2: #252521;
-    --ink: #ecebe6;
-    --ink-2: #a9a69c;
-    --line: #34332e;
-    --accent: #3fb59f;
-    --accent-ink: #0b1f1b;
-    --warn: #e0a13a;
-    --danger: #f08a80;
-    --ok: #6cc98d;
+  :root:not([data-theme="light"]) {
+    --paper: #141a20;
+    --sheet: #1b232b;
+    --sheet-2: #232d36;
+    --rule: #2f3a44;
+    --rule-strong: #46535e;
+    --ink: #e6ecf1;
+    --ink-2: #b2bec7;
+    --ink-3: #8a97a1;
+    --carbon: #8fa8e8;
+    --carbon-ink: #0f1830;
+    --carbon-wash: #22304f;
+    --dup: #f09ab4;
+    --dup-wash: #3a2230;
+    --stamp: #6cc59a;
+    --stamp-wash: #1d3529;
+    --amber: #e6b25c;
+    --amber-wash: #3a2f1b;
+    --bubble-in: #232d36;
+    --bubble-out: #22304f;
+    color-scheme: dark;
   }
 }

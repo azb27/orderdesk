@@ -106,7 +106,13 @@ Python 3.11, FastAPI, SQLAlchemy 2 + Alembic, Postgres 16, psycopg 3, rapidfuzz,
     - **Model:** used within a daily budget, with automatic fallback to the fuzzy parser when it's unavailable.
     - **People:** order-taker and supervisor roles (credit holds and large orders need a supervisor), optimistic concurrency on edits, an audit log, learned names (aliases and per-customer nicknames), templated replies in the customer's language, and live updates over SSE from Postgres NOTIFY.
     - **Tests:** 16 against real Postgres, including "a lost ERP response is booked once", "a person's edit is never overwritten by a re-parse" and "rolled-back changes never reach the live feed".
-- [ ] **P5: Console + simulator.** React app, phone simulator, Vitest component tests, Playwright E2E (order arrives → rep fixes a line → confirms → ERP has it → retailer gets the reply).
+- [x] **P5: Console + simulator.** React app, phone simulator, Vitest component tests, Playwright E2E (order arrives → rep fixes a line → confirms → ERP has it → retailer gets the reply).
+  - *Done:* React 19 + TypeScript (strict) console with hand-written CSS from design tokens. The look borrows from a carbon-copy order book; confirming plays a rubber stamp, the app's only motion.
+    - **Layout:** a three-pane desk (queue, WhatsApp thread, order pad). Hovering a line highlights the words it was read from.
+    - **Order pad:** pink tint and plain-language reasons for lines that need a look; an accessible product combobox; substitutes for out-of-stock lines; "teach this name" after a correction; credit bar; history from the audit log.
+    - **Speed and live updates:** keyboard flow (j/k, arrows, e, Enter) and live updates over SSE.
+    - **Demo and admin pages:** a retailer phone that sends through the signed webhook, with samples in all four styles and two handwritten-list photos; a jobs page for dead letters.
+    - **Tests:** 9 Vitest tests, plus 3 Playwright end-to-end tests that also run in CI against a seeded Postgres (phone → draft → edit → Enter → stamp → ERP → WhatsApp reply).
 - [ ] **P6: Deploy.** Free-tier hosting, demo guards (daily LLM budget, rate limits, replay mode when the budget is spent), seeded demo data, recorded demo GIF.
 - [ ] **P7: Engagement pack + ship.** Process map, rollout plan (shadow → assist → auto-confirm under a measured threshold), runbook, data-handling note, week-2 plan, README, profile update.
 

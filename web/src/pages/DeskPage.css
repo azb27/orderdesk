@@ -1,0 +1,37 @@
+.desk {
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(250px, 300px) minmax(280px, 360px) minmax(520px, 1fr);
+  grid-template-rows: auto auto 1fr;
+  grid-template-areas:
+    "top top top"
+    "tabs conv pad"
+    "queue conv pad";
+}
+.desk--phone {
+  grid-template-columns: minmax(230px, 280px) minmax(260px, 330px) minmax(480px, 1fr) 340px;
+  grid-template-areas:
+    "top top top top"
+    "tabs conv pad phone"
+    "queue conv pad phone";
+}
+.desk-tabs {
+  grid-area: tabs; display: flex; flex-wrap: wrap; gap: 2px; padding: var(--s2) var(--s3) 0;
+  border-inline-end: 1px solid var(--rule);
+}
+.desk-tab {
+  border: 0; background: transparent; padding: 6px 10px; border-radius: var(--r-control); cursor: pointer; color: var(--ink-2);
+  font-size: var(--step--1);
+}
+.desk-tab:hover { background: var(--sheet-2); }
+.desk-tab.is-active { background: var(--ink); color: var(--paper); font-weight: 600; }
+.desk-tab-count { margin-inline-start: 6px; opacity: 0.8; font-weight: 400; }
+
+@media (max-width: 1100px) {
+  .desk, .desk--phone {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto auto auto auto;
+    grid-template-areas: "top" "tabs" "queue" "pad" "conv" "phone";
+    height: auto;
+  }
+}

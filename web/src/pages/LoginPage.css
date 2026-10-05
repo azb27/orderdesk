@@ -1,0 +1,18 @@
+.login { min-height: 100%; display: grid; place-items: center; padding: var(--s5); }
+.login-sheet {
+  width: min(460px, 100%); background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r-pane);
+  padding: var(--s6); display: grid; gap: var(--s4);
+  border-block-start: 6px double var(--rule-strong);
+}
+.login-brand { color: var(--ink-2); font-size: var(--step--1); }
+.login-sheet h1 { font-size: var(--step-3); letter-spacing: -0.01em; }
+.login-demo { display: grid; gap: var(--s2); }
+.login-person {
+  display: grid; gap: 2px; text-align: start; padding: var(--s3) var(--s4); cursor: pointer;
+  border: 1px solid var(--rule-strong); border-radius: var(--r-control); background: var(--sheet);
+}
+.login-person:hover { border-color: var(--carbon); }
+.login-person-name { font-weight: 600; color: var(--carbon); }
+.login-manual summary { cursor: pointer; color: var(--ink-2); }
+.login-form { display: grid; gap: var(--s3); margin-block-start: var(--s3); }
+.login-foot { font-size: var(--step--1); }

@@ -1,0 +1,11 @@
+.jobs-page { min-height: 100%; display: flex; flex-direction: column; }
+.jobs { max-width: 900px; width: 100%; margin: 0 auto; padding: var(--s5); display: grid; gap: var(--s6); align-content: start; }
+.jobs > .btn { justify-self: start; }
+.jobs-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--s4); margin: var(--s4) 0 0; }
+.jobs-stats div { border-block-start: 2px solid var(--rule-strong); padding-block-start: var(--s2); }
+.jobs-stats dt { color: var(--ink-2); font-size: var(--step--1); }
+.jobs-stats dd { margin: 0; font-size: var(--step-2); font-weight: 600; }
+.jobs-list { list-style: none; padding: 0; margin: var(--s3) 0 0; display: grid; gap: var(--s2); }
+.jobs-list li { display: flex; justify-content: space-between; gap: var(--s4); align-items: center; padding: var(--s3); background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r-control); }
+.jobs-kind { font-weight: 600; }
+.jobs-none { margin-top: var(--s3); color: var(--stamp); }

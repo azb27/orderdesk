@@ -1,0 +1,16 @@
+.phone { grid-area: phone; border-inline-start: 1px solid var(--rule); background: var(--sheet); padding: var(--s3) var(--s4); display: flex; flex-direction: column; gap: var(--s3); overflow: auto; min-height: 0; }
+.phone-head { display: flex; justify-content: space-between; align-items: center; }
+.phone-explain { font-size: var(--step--1); }
+.phone-screen { border: 8px solid var(--ink); border-radius: 22px; background: var(--sheet-2); display: flex; flex-direction: column; min-height: 360px; flex: 1; overflow: hidden; }
+.phone-thread { list-style: none; margin: 0; padding: var(--s3); display: flex; flex-direction: column; gap: 6px; overflow: auto; flex: 1; }
+.phone-empty { padding: var(--s2); font-size: var(--step--1); }
+.pbubble { max-width: 85%; padding: 6px 10px 3px; border-radius: 10px; display: grid; gap: 2px; font-size: var(--step--1); }
+.pbubble p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.pbubble time { font-size: 0.68rem; color: var(--ink-3); justify-self: end; }
+.pbubble--me { align-self: flex-end; background: var(--bubble-out); }
+.pbubble--them { align-self: flex-start; background: var(--bubble-in); border: 1px solid var(--rule); }
+.phone-compose { display: grid; gap: var(--s2); padding: var(--s2); background: var(--sheet); border-block-start: 1px solid var(--rule); }
+.phone-compose textarea { resize: vertical; }
+.phone-actions { display: flex; justify-content: space-between; }
+.phone-samples { display: flex; flex-wrap: wrap; gap: var(--s1); align-items: center; font-size: var(--step--1); }
+.phone-samples .btn { padding: 3px 8px; font-size: var(--step--1); }
