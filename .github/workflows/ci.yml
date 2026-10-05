@@ -98,6 +98,11 @@ jobs:
         run: npx playwright test
       - name: The image holds no eval data or ground truth
         run: docker run --rm orderdesk-demo sh -c 'test ! -e /app/data/eval && test ! -e /app/api/evals && test ! -e /app/api/tests'
-      - name: Server log on failure
+      - name: Page snapshot and server log as annotations on failure
         if: failure()
-        run: docker logs od 2>&1 | tail -100
+        run: |
+          esc() { sed -e 's/%/%25/g' | awk 'BEGIN{ORS="%0A"} {print}'; }
+          for f in web/test-results/*/error-context.md; do
+            [ -f "$f" ] && echo "::error title=page at failure ($f)::$(head -c 6000 "$f" | esc)"
+          done
+          echo "::error title=server log::$(docker logs od 2>&1 | tail -60 | esc)"
