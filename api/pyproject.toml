@@ -23,9 +23,6 @@ dependencies = [
 world = ["pillow>=10.3", "numpy>=1.26", "scipy>=1.11"]
 dev = ["orderdesk[world]", "pytest>=8", "pytest-asyncio>=0.23", "ruff==0.16.9"]
 
-[project.scripts]
-orderdesk = "orderdesk.cli:main"
-
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
