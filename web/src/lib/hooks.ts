@@ -33,10 +33,9 @@ export function useLiveUpdates(enabled: boolean): boolean {
   const [connected, setConnected] = useState(false);
   useEffect(() => {
     if (!enabled) return;
-    const es = new EventSource("/api/events");
-    es.onopen = () => setConnected(true);
-    es.onerror = () => setConnected(false);
-    es.onmessage = (e: MessageEvent<string>) => {
+    let es: EventSource | null = null;
+
+    function onMessage(e: MessageEvent<string>) {
       let ev: LiveEvent;
       try {
         ev = JSON.parse(e.data) as LiveEvent;
@@ -51,8 +50,35 @@ export function useLiveUpdates(enabled: boolean): boolean {
         void qc.invalidateQueries({ queryKey: keys.thread(ev.phone) });
         void qc.invalidateQueries({ queryKey: ["order"] });
       }
+    }
+    function open() {
+      if (es) return;
+      es = new EventSource("/api/events");
+      es.onopen = () => setConnected(true);
+      es.onerror = () => setConnected(false);
+      es.onmessage = onMessage;
+    }
+    function close() {
+      es?.close();
+      es = null;
+      setConnected(false);
+    }
+    // A hidden tab drops its stream, so a forgotten tab doesn't keep the server (and its database) awake.
+    // Coming back reopens it and refetches whatever changed meanwhile.
+    function onVisibility() {
+      if (document.hidden) {
+        close();
+      } else {
+        open();
+        void qc.invalidateQueries();
+      }
+    }
+    if (!document.hidden) open();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      close();
     };
-    return () => es.close();
   }, [enabled, qc]);
   return connected;
 }
