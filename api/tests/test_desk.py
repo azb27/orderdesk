@@ -15,6 +15,7 @@ from orderdesk.channels import whatsapp
 from orderdesk.db.models import Customer, ErpOrder, Job, Message, SalesOrder
 from orderdesk.db.session import session_scope
 from orderdesk.jobs import queue
+from orderdesk.parse.build import Draft
 from orderdesk.parse.llm import Scripted
 from orderdesk.web.app import app
 from orderdesk.web.guards import client_ip
@@ -250,8 +251,12 @@ def test_a_question_is_not_an_order(client):
     assert client.get("/api/orders").json() == []
 
 
-def test_the_demo_phone_goes_through_the_signed_webhook(client):
+def test_the_demo_phone_goes_through_the_signed_webhook(client, monkeypatch):
+    checked = []
+    real = whatsapp.signature_ok
+    monkeypatch.setattr(whatsapp, "signature_ok", lambda body, sig: checked.append(sig) or real(body, sig))
     r = client.post("/api/simulator/send", data={"phone": PHONE, "text": "al wadi water 500 ml 2 ctn"})
+    assert checked and checked[0].startswith("sha256=")  # the webhook's own signature check ran
     assert r.status_code == 200
     assert client.post("/api/simulator/send", data={"phone": "+15550000000", "text": "hi"}).status_code == 404
     queue.drain()
@@ -405,3 +410,14 @@ def test_an_erp_rejection_goes_straight_to_the_jobs_page_and_can_be_sent_again(c
     assert client.post(f"/api/jobs/{dead[0]['id']}/retry", headers=H).status_code == 200
     queue.drain()
     assert client.get(f"/api/orders/{o['id']}").json()["status"] == "posted"
+
+
+def test_the_budget_counts_messages_that_were_not_orders(client, monkeypatch):
+    def fake_parse(s, w, msgs, phone):
+        return Draft(None, "not_order", [], 0, [], []), "scripted", 0.05, []
+
+    monkeypatch.setattr(desk, "_parse", fake_parse)
+    send(client, "what time is delivery today?")
+    queue.drain()
+    with session_scope() as s:
+        assert desk.llm_spend_today(s) == pytest.approx(0.05)

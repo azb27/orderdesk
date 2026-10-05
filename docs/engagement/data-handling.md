@@ -32,10 +32,10 @@ Anthropic's commercial terms say API data is not used for training without permi
 |---|---|---|
 | Messages and photos | 90 days after the order is posted, then deleted. The order keeps its lines and the source words for each line | A scheduled job, like the demo's start-up cleanup (`desk.demo_cleanup`) but on the production schedule |
 | Orders and audit log | As long as the ERP keeps sales records (financial records) | Not deleted by Orderdesk |
-| Learned aliases | Indefinitely. They are product vocabulary, not personal data | Reviewable and deletable by a supervisor |
-| Staff accounts | Disabled when someone leaves. Their audit entries stay | Admin |
+| Learned aliases | Indefinitely. They are product vocabulary, not personal data | To build: a supervisor screen to review and delete them (today they are only added, and audited) |
+| Staff accounts | Disabled when someone leaves. Their audit entries stay | To build with single sign-on (the demo's two accounts have no disable flag) |
 
-The public demo keeps visitors' orders and messages for 3 days (`DEMO_RETENTION_DAYS`). Its customers are fictional.
+The public demo deletes visitors' orders, messages and photos older than 3 days (`DEMO_RETENTION_DAYS`) at each start-up; names visitors teach stay until a full reset. Its customers are fictional.
 
 ## Access
 

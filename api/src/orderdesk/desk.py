@@ -118,15 +118,17 @@ def ingest(s: Session, inbound: list[Inbound]) -> list[int]:
 
 # ---- parse -----------------------------------------------------------------------------------------------------
 def llm_spend_today(s: Session) -> float:
+    """Model spend since midnight UTC: parses that made an order, plus messages it classed as not an order."""
     start = dt.datetime.now(dt.UTC).replace(hour=0, minute=0, second=0, microsecond=0)
-    return float(
-        s.scalar(
-            select(func.coalesce(func.sum(SalesOrder.parse_cost_usd), 0.0)).where(
-                SalesOrder.created_at >= start
-            )
-        )
-        or 0.0
+    orders = s.scalar(
+        select(func.coalesce(func.sum(SalesOrder.parse_cost_usd), 0.0)).where(SalesOrder.created_at >= start)
     )
+    other = s.scalar(
+        select(func.coalesce(func.sum(AuditEvent.after["cost_usd"].as_float()), 0.0)).where(
+            AuditEvent.action == "classified_not_order", AuditEvent.at >= start
+        )
+    )
+    return float(orders or 0.0) + float(other or 0.0)
 
 
 def model_factory() -> Any:
@@ -222,7 +224,7 @@ def handle_parse(s: Session, payload: dict[str, Any]) -> None:
         if order is not None:
             order.status = "rejected"
         publish(s, "conversation", conversation_id=conv.id, intent="not_order")
-        audit(s, None, "classified_not_order", "conversation", conv.id)
+        audit(s, None, "classified_not_order", "conversation", conv.id, after={"cost_usd": cost})
         return
     if order is None:
         order = SalesOrder(ref=next_ref(s), customer_id=conv.customer_id, conversation_id=conv.id, status="review",

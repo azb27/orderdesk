@@ -7,8 +7,8 @@ The pitch to the distributor is "the desk confirms most lines without reading th
 
 ## Decision
 - Each draft line records its features: model certainty, exact alias hit, in the customer's history, size given and matched, unit from history, came from a photo, nickname, repeat order, top retrieval rank.
-- `evals.calibrate` fits a logistic model on the **dev** split (Sonnet run) and writes `data/model/confidence.json`. The app loads it at start-up; without it the hand-set defaults apply.
-- `evals.report` recomputes confidence for every **test** line from the stored features and the fitted weights. It then reports AUC and the touchless rate at 0.5%, 1% and 2% line error among the lines nobody checks.
+- `evals.calibrate` fits a logistic model on the **dev** split (Sonnet run) and writes `data/model/confidence.json`. The app reads it whenever it scores lines; without it the hand-set defaults apply.
+- `evals.report` recomputes confidence for every **test** line from the stored features and the fitted weights. It then reports AUC and the touchless rate at 1%, 2% and 3% line error among the lines nobody checks, and per whole order at a few thresholds.
 
 ## Consequences
 - The touchless numbers in `docs/results/eval.md` are out-of-sample. The same split and the same weights could set the production threshold, but only after shadow mode on real messages ([rollout plan](../engagement/rollout-plan.md)): synthetic dev data is not the customer's data.

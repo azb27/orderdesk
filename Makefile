@@ -1,4 +1,4 @@
-.PHONY: setup pg world test lint dev e2e
+.PHONY: setup pg db world test lint dev e2e
 
 setup:
 	pip install -e "api[dev]"
@@ -7,6 +7,9 @@ setup:
 
 pg:
 	scripts/pg.sh start
+
+db:
+	cd api && alembic upgrade head && python -m orderdesk.seed --if-empty
 
 world:
 	cd api && python -m orderdesk.world.build

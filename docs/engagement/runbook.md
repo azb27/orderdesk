@@ -11,7 +11,7 @@ There is one container: the web console, the API, the job worker, and live updat
 | Is it up? | `GET /healthz` returns `{"ok": true, "queued_jobs": n, "model": ..., "llm": true}` |
 | Today's numbers | The **Jobs** page in the console (from `GET /api/stats`): orders by status over 24 h, dead jobs, average seconds from opening an order to confirming it, model spend today against the budget |
 | Stuck work | The **Jobs** page lists dead jobs with their last error. A supervisor can retry one |
-| Who did what | Each order's history panel (from `GET /api/audit`): every edit, confirmation, rejection, alias taught and ERP post, with before and after |
+| Who did what | Each order's history panel (from `GET /api/audit`): every edit (with before and after), confirmation, rejection and ERP post. Taught names are logged separately, under `entity=alias` |
 | Logs | The host's log stream (Render: the service's Logs tab) |
 
 ## Daily

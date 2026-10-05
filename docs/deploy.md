@@ -16,7 +16,7 @@ browser ──https──▶ Render (free, Docker)                              
 |---|---|---|
 | Render free web service | Spins down after 15 minutes with no inbound traffic; about a minute to wake. 750 instance hours a month per workspace. | The first visit after a quiet spell waits about a minute. |
 | Neon free | 100 CU-hours a month per project, 1 GB storage, scales to zero after 5 minutes idle. | The first query after a pause takes about a second longer. |
-| Anthropic | Pay as you go. The app stops calling the model once it has spent `LLM_DAILY_BUDGET_USD` (default $0.50) in a UTC day. | After that, drafts are made by fuzzy matching and say so in a note. |
+| Anthropic | Pay as you go. The app stops calling the model once it has spent `LLM_DAILY_BUDGET_USD` in a UTC day: $0.50 in `render.yaml`, $1.00 if unset. | After that, drafts are made by fuzzy matching and say so in a note. |
 
 The app's job worker polls Postgres, so Neon stays awake whenever Render does. A browser tab that is hidden closes its live-update stream, so a forgotten tab doesn't keep both running.
 
@@ -43,7 +43,7 @@ In the [Anthropic Console](https://console.anthropic.com):
 2. Set a monthly spend limit on it (for example $10).
 3. Create an API key in that workspace.
 
-The app's daily budget is the first guard and the workspace limit is the backstop. A Sonnet draft costs about 2 cents (see `docs/results/eval.md`), so $0.50 a day covers roughly 25 visitor orders.
+The app's daily budget is the first guard and the workspace limit is the backstop. A Sonnet draft costs about 2 cents (see `docs/results/eval.md`), so $0.50 a day covers roughly 23 visitor orders.
 
 Paste the key only into Render (next step). It never goes in the repo or in chat.
 
@@ -66,7 +66,7 @@ Paste the key only into Render (next step). It never goes in the repo or in chat
 ## 4. Check it works
 
 1. Open `https://<service>.onrender.com/healthz`. You should see `"ok": true`, and `"llm": true` if you gave it a key.
-2. Open the site and sign in with **Maria (order-taker)**.
+2. Open the site and sign in with the **Maria / Order desk** button.
 3. Open the phone (top right). Send a sample order, or a photo of the handwritten list.
 4. In a few seconds a draft appears in **To check**.
 5. Confirm it. The stamp lands, the order moves to **In ERP**, and the phone gets a reply in the retailer's language.
@@ -75,7 +75,7 @@ If the live dot in the top bar stays grey, `DATABASE_URL` is the pooled string. 
 
 ## Running it
 
-**Demo data.** Visitors' orders and conversations are deleted at start-up once they are older than `DEMO_RETENTION_DAYS` (3). The seeded history is kept. Because the service spins down when idle, this runs often.
+**Demo data.** At each start-up, visitors' orders, conversations and photos older than `DEMO_RETENTION_DAYS` (3) are deleted. The seeded history is kept. Names that visitors teach (aliases and nicknames) are kept too, and a full reset clears them. Because the service spins down when idle, start-ups are frequent.
 
 **Full reset.** In Neon's SQL editor, run the following and then choose **Manual Deploy → Restart** on Render:
 
@@ -102,7 +102,7 @@ Behind a proxy that re-signs TLS, pass its CA bundle as a build secret: `--secre
 
 | Demo | Production at Saffron Lane |
 |---|---|
-| A phone simulator posts signed webhooks to the app. | Meta's WhatsApp Cloud API posts to the same `/webhooks/whatsapp` route. `channels/whatsapp.Sender` gets its cloud mode, a stub today, to send the templated replies through the Graph API. |
+| A phone simulator: the server signs a Cloud API payload and passes it through the webhook's own verify-and-store step. | Meta's WhatsApp Cloud API posts to the same `/webhooks/whatsapp` route. `channels/whatsapp.Sender` gets its cloud mode, a stub today, to send the templated replies through the Graph API. |
 | A mock ERP on the same server, reached over loopback (other callers get 403). | The distributor's ERP API, with the same idempotency key per order. |
 | One process: API, job worker and live updates. | API and worker as separate services on the same Postgres queue. Workers scale with `SKIP LOCKED`. |
 | Photos stored in Postgres. | Object storage with a retention policy. The `media` table keeps only the key. |

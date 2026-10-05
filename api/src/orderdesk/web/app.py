@@ -90,23 +90,25 @@ def wa_verify(mode: str = Query(alias="hub.mode"), token: str = Query(alias="hub
     raise HTTPException(403, "verification failed")
 
 
-@app.post("/webhooks/whatsapp")
-async def wa_inbound(request: Request) -> dict[str, Any]:
-    body = await request.body()
-    if not whatsapp.signature_ok(body, request.headers.get("X-Hub-Signature-256")):
+def receive_webhook(body: bytes, signature: str | None) -> dict[str, Any]:
+    """Verify and store one webhook delivery. Every message enters the desk this way: from Meta, or from the
+    demo phone, which signs its payload exactly as Meta would."""
+    if not whatsapp.signature_ok(body, signature):
         raise HTTPException(401, "bad signature")
     try:
         payload = json.loads(body)
     except json.JSONDecodeError:
         raise HTTPException(400, "not JSON") from None
     inbound = whatsapp.parse_webhook(payload)
-
-    def store() -> list[int]:
-        with session_scope() as s:
-            return desk.ingest(s, inbound)
-
-    new = await asyncio.to_thread(store)
+    with session_scope() as s:
+        new = desk.ingest(s, inbound)
     return {"received": len(inbound), "new": len(new)}  # 200 fast; parsing happens in the job queue
+
+
+@app.post("/webhooks/whatsapp")
+async def wa_inbound(request: Request) -> dict[str, Any]:
+    body = await request.body()
+    return await asyncio.to_thread(receive_webhook, body, request.headers.get("X-Hub-Signature-256"))
 
 
 # ---- auth -----------------------------------------------------------------------------------------------------------
@@ -395,15 +397,9 @@ def sim_customers(s: Session = Depends(get_session)) -> list[dict[str, Any]]:
 
 
 async def _post_signed(payload: dict[str, Any]) -> None:
-    """Deliver like Meta would: sign the body and call the real webhook handler."""
+    """Deliver like Meta would: sign the body and hand it to the webhook's own verify-and-store step."""
     body = json.dumps(payload).encode()
-
-    def store() -> None:
-        assert whatsapp.signature_ok(body, whatsapp.sign(body))
-        with session_scope() as s:
-            desk.ingest(s, whatsapp.parse_webhook(json.loads(body)))
-
-    await asyncio.to_thread(store)
+    await asyncio.to_thread(receive_webhook, body, whatsapp.sign(body))
 
 
 def _sim_customer(s: Session, phone: str) -> Customer:

@@ -11,7 +11,7 @@ A real WhatsApp Business number needs Meta business verification, a phone number
   - `POST` with an `X-Hub-Signature-256` HMAC over the raw body;
   - message ids (`wamid`) as idempotency keys;
   - text and image message types.
-- The **phone simulator** in the console builds real Cloud API payloads, signs them with the app secret and posts them to that webhook. The parser doesn't know the difference.
+- The **phone simulator** in the console sends the text to the server. The server builds a real Cloud API payload, signs it with the app secret, and hands it to the webhook's own verify-and-store step (`receive_webhook`), so the signature check runs on every demo message too. The parser doesn't know the difference.
 - **Replies** are templates in the customer's language style (en, ar, Arabizi, Roman Hindi/Urdu), recorded as outbound messages. `channels.whatsapp.Sender` has a simulator mode and a cloud-mode stub.
 - Messages from one number within 15 minutes amend the same draft, because retailers send lists in pieces.
 

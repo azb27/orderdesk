@@ -39,7 +39,7 @@ These come from the held-out names (88.7% right versus 93.1% for names in the al
 
 ### 2. Size left out (choice), now fixed in code
 
-When a retailer writes "tuna fish" with no size and has only ever bought the 85 g tin, the answer is the 85 g tin. The resolve prompt says so. The model still picked a "common size" in 15 such cases in the first run, for example "lemon soda dait" → 150 ml can, for a customer who had bought the 2.25 L bottle 31 times.
+When a retailer writes "tuna fish" with no size and has only ever bought the 85 g tin, the answer is the 85 g tin. The resolve prompt says so. The model got all 17 such lines in the test split wrong in the first run, usually by picking a "common size", for example "lemon soda dait" → 150 ml can, for a customer who had bought the 2.25 L bottle 31 times.
 
 **Fix:** when no size is written and the customer's history has exactly one size of the chosen product, code uses it and flags the line `size_from_history`. It fired on 17 test lines, 16 of them right, and the size-left-out slice is now 94.7%. The reasoning: the model is good at *which product*, and code is better at *which of their usual sizes*. This is the same split as ADR 0001.
 

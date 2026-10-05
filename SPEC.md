@@ -93,7 +93,7 @@ Python 3.11, FastAPI, SQLAlchemy 2 + Alembic, Postgres 16, psycopg 3, rapidfuzz,
 - [x] **P1: World + eval sets.** Catalogue, customers, prices, stock, history, street-name lexicon (seen/held-out split), message generator with ground truth, handwritten-list images, hand-written gold set. Frozen eval files with a manifest.
   - *Done:* `python -m orderdesk.world.build` (11 s, deterministic). 211 SKUs, 180 customers, 3,984 past orders.
     - **Eval sets:** dev 120 conversations / 744 lines; test 300 / 1,902 lines (42 handwritten-list photos, 381 lines using held-out names, 472 with the size left to history, 335 with the unit left to history); gold 40 hand-written / 149 lines.
-    - **Lexicon:** 1,176 street terms in four styles, 29% held out from the parser's alias table. Generic words ("rice", "doodh") are only used when the customer's own basket makes them unambiguous.
+    - **Lexicon:** 1,176 street terms in four styles, 323 (27.5%) held out from the parser's alias table (29% of the 1,122 that are eligible: official names and generic words never are). Generic words ("rice", "doodh") are only used when the customer's own basket makes them unambiguous.
     - **Tests:** truth consistent with the catalogue, held-out names never in the alias table, parser inputs carry no truth, rebuild reproduces the committed files (manifest hashes).
 - [x] **P2: Parser.** Extraction, retrieval, constrained resolution, order builder, confidence; fuzzy baseline. Unit tests for every deterministic step; LLM steps tested with a scripted fake model.
   - *Done:* `api/src/orderdesk/parse/`. Two model calls per conversation (extract, then resolve against at most 40 candidates per line), with deterministic retrieval, units, prices, stock, credit and confidence in code. A choice outside the candidate list is rejected, not repaired. A fuzzy parser with no model is both the baseline and the product's fallback when the API is down. A smoke run on 3 dev conversations got 23/23 lines right at $0.02–0.035 per conversation.
@@ -104,7 +104,7 @@ Python 3.11, FastAPI, SQLAlchemy 2 + Alembic, Postgres 16, psycopg 3, rapidfuzz,
     - **Hand-written set:** 80.5% of lines found, 60.0% of orders exactly right.
     - **Confidence:** fitted on dev; touchless rates per line and per order, with tie-aware thresholds. At a 2% line-error budget, 85% of lines would skip a look.
     - **Failure analysis:** every error traced to the step that lost it. Most are choices between candidates the model was given; retrieval rarely misses.
-    - **Fixes:** three, all in code. A size left out now comes from history, a removal drops what's on the order, and an unusable extraction is retried once. They were re-measured for free from the response cache (`--rebuild`), and the first runs are archived in `runs/evals/_archive/v1`. A quantity guard flags 3× outliers.
+    - **Fixes:** three, all in code. A size left out now comes from history, a removal drops what's on the order, and an unusable extraction is retried once. They were re-measured from the response cache (`--rebuild`), with only the retries costing anything (about $0.15). The first runs are archived in `runs/evals/_archive/v1`. A quantity guard flags 3× outliers.
     - **Write-up:** `docs/engagement/failure-analysis.md`.
 - [x] **P4: Backend product.** Webhook, sessions, job queue, SSE, ERP adapter with fault injection, auth and roles, audit log. API tests against real Postgres.
   - *Done:* FastAPI app, Postgres schema with an Alembic migration, and a seed script that loads the synthetic world.

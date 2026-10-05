@@ -8,6 +8,7 @@ Orderdesk: WhatsApp orders (text and photos, four language styles) turned into d
 ## Commands
 ```bash
 make setup                      # python deps (api/), npm ci (web/), local Postgres in .pg/ on port 5433
+make db                         # migrate + seed the local database (once)
 make world                      # generate catalogue, customers, history, eval messages + images (deterministic)
 make test                       # pytest (needs the local Postgres) + vitest
 make lint                       # ruff + tsc + oxlint

@@ -32,10 +32,10 @@ Turn the synthetic eval into a real one, and fix the error class the hand-writte
 
 ## 4. Two small prompt fixes, measured on their own
 
-**Why:** both are named in the failure analysis, and each is cheap to test in isolation.
+**Why:** each is cheap to test in isolation. The first is in the failure analysis (pattern 4); the second comes from the hand-written set (gold-21), where a carton with no number was drafted with quantity 0.
 
 - Tell the resolver that a removal needs a product too. It answered NONE for "anda brown nahi chahiye" because it read a removal as a negation.
-- Tell the extractor that a unit word with no number means one ("زيت ١٫٥ لتر كرتون" is one carton).
+- Tell the extractor that a unit word with no number means one ("زيت دوار الشمس ١٫٥ لتر كرتون" is one carton).
 
 ## 5. Put the eval in CI
 
