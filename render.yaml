@@ -1,0 +1,33 @@
+# Render Blueprint for the public demo: one free Docker web service. Postgres is Neon's free tier (see docs/deploy.md).
+# Secrets marked `sync: false` are typed into the Render dashboard on first deploy and never live in this repo.
+services:
+  - type: web
+    name: orderdesk
+    runtime: docker
+    plan: free
+    region: frankfurt # next to Neon's aws-eu-central-1; the closest pair to Dubai on both free tiers
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    envVars:
+      - key: DATABASE_URL # Neon's DIRECT connection string (not the -pooler one): live updates need LISTEN
+        sync: false
+      - key: ANTHROPIC_API_KEY # leave empty and the demo parses with the fuzzy fallback
+        sync: false
+      - key: SECRET_KEY # signs session cookies
+        generateValue: true
+      - key: WHATSAPP_APP_SECRET # signs simulator webhooks, same as Meta's app secret would
+        generateValue: true
+      - key: COOKIE_SECURE
+        value: "1"
+      - key: TRUST_PROXY # rate limits key on the address Render's proxy appends
+        value: "1"
+      - key: DEMO_MODE # trims visitor orders older than DEMO_RETENTION_DAYS at start-up
+        value: "1"
+      - key: DEMO_RETENTION_DAYS
+        value: "3"
+      - key: LLM_DAILY_BUDGET_USD # past this, parsing falls back to fuzzy matching until midnight UTC
+        value: "0.50"
+      - key: SIM_PER_MINUTE
+        value: "8"
+      - key: ORDERDESK_MODEL
+        value: claude-sonnet-5

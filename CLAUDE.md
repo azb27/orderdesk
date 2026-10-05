@@ -13,6 +13,7 @@ make test                       # pytest (needs the local Postgres) + vitest
 make lint                       # ruff + tsc + oxlint
 make dev                        # API on :8000 (worker in-process) + Vite on :5173
 make e2e                        # Playwright against a running dev stack
+docker build -t orderdesk-demo . # the public demo image (world + confidence model, never data/eval); deploy: docs/deploy.md
 ```
 Install the secret guard once per clone: `ln -sf ../../scripts/pre-commit .git/hooks/pre-commit`. API keys live in an untracked env file, never in the repo.
 

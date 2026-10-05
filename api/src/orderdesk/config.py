@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(os.environ.get("ORDERDESK_ROOT", Path(__file__).resolve().parents[3]))  # set in the container
 DATA = Path(os.environ.get("ORDERDESK_DATA", ROOT / "data"))
 WORLD = DATA / "world"  # catalogue, customers, prices, stock, history (what the product can see)
 EVAL = DATA / "eval"  # eval messages and images (what the parser sees)
