@@ -4,6 +4,8 @@
 
 [![ci](https://github.com/azb27/orderdesk/actions/workflows/ci.yml/badge.svg)](https://github.com/azb27/orderdesk/actions/workflows/ci.yml)
 
+**[Try the live demo](https://orderdesk-64jp.onrender.com)**: sign in with one click, open the retailer phone, send an order in any of the four styles or a photo of a handwritten list, and confirm it. Free hosting, so the first visit after a quiet spell takes about a minute to wake up.
+
 ![An Arabizi WhatsApp order becomes a draft, the out-of-stock water is swapped for another brand, the order is confirmed and posted to the ERP, and the retailer gets a reply in Arabizi. Then a photo of a handwritten list is read into a six-line draft.](docs/images/demo.gif)
 
 *Recorded against the Docker image with Claude Sonnet 5 (`scripts/demo_video.py`), sped up 1.8×. The customer, catalogue and messages are fictional.*

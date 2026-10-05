@@ -128,7 +128,7 @@ Python 3.11, FastAPI, SQLAlchemy 2 + Alembic, Postgres 16, psycopg 3, rapidfuzz,
     - **Storage and live updates:** photos in Postgres; live updates pause in hidden tabs.
     - **CI:** runs Playwright against this image, and checks it holds no eval data.
     - **Demo:** `docs/images/demo.gif` recorded against the image with Sonnet 5.
-    - **Still to do:** going live needs Aziz's Render and Neon accounts and his Anthropic key, entered in Render, never in the repo.
+    - **Live:** https://orderdesk-64jp.onrender.com (Render free tier in Frankfurt, Neon in Frankfurt; 5 Oct 2026). The Playwright suite passes against it with Sonnet 5 doing the reading. From outside, the mock ERP answers 403 and an unsigned webhook 401.
 - [x] **P7: Engagement pack + ship.** Process map, rollout plan (shadow → assist → auto-confirm under a measured threshold), runbook, data-handling note, week-2 plan, README, profile update.
   - *Done:* `docs/engagement/` holds the process map, rollout plan (with gates per stage), runbook, data-handling note, week-2 plan and failure analysis. Five ADRs. The README leads with the eval and the GIF. Writing the runbook found a gap: an ERP rejection had no retry path, and now it goes to the jobs page. Profile README updated.
 

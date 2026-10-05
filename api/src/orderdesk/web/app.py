@@ -74,7 +74,7 @@ async def desk_error(_request: Request, e: desk.DeskError) -> JSONResponse:
     return JSONResponse({"detail": str(e)}, status_code=e.status)
 
 
-@app.get("/healthz")
+@app.api_route("/healthz", methods=["GET", "HEAD"])
 def healthz(s: Session = Depends(get_session)) -> dict[str, Any]:
     queued = s.scalar(select(func.count(Job.id)).where(Job.status == "queued")) or 0
     return {"ok": True, "queued_jobs": queued, "model": os.environ.get("ORDERDESK_MODEL", config.MODEL),
@@ -453,7 +453,7 @@ def sim_thread(phone: str, s: Session = Depends(get_session)) -> list[dict[str, 
 if STATIC.exists():
     app.mount("/assets", StaticFiles(directory=STATIC / "assets"), name="assets")
 
-    @app.get("/{path:path}", include_in_schema=False)
+    @app.api_route("/{path:path}", methods=["GET", "HEAD"], include_in_schema=False)  # HEAD: uptime probes
     def spa(path: str) -> FileResponse:
         if path.startswith(("api/", "webhooks/", "erp-mock/")):
             raise HTTPException(404)
