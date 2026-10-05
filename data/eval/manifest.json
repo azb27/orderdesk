@@ -1,0 +1,86 @@
+{
+ "built": "deterministic",
+ "seed": 2026,
+ "skus": 211,
+ "customers": 180,
+ "history_orders": 3984,
+ "splits": {
+  "dev": {
+   "conversations": 120,
+   "kinds": {
+    "amend": 13,
+    "not_order": 11,
+    "order": 82,
+    "usual": 14
+   },
+   "images": 19,
+   "lines": 744,
+   "styles": {
+    "ar": 104,
+    "arabizi": 134,
+    "en": 375,
+    "roman": 131
+   },
+   "heldout_terms": 171,
+   "size_omitted": 185,
+   "unit_omitted": 121,
+   "nicknames": 5
+  },
+  "test": {
+   "conversations": 300,
+   "kinds": {
+    "amend": 35,
+    "not_order": 16,
+    "order": 206,
+    "usual": 43
+   },
+   "images": 42,
+   "lines": 1902,
+   "styles": {
+    "ar": 262,
+    "arabizi": 393,
+    "en": 726,
+    "roman": 521
+   },
+   "heldout_terms": 381,
+   "size_omitted": 472,
+   "unit_omitted": 335,
+   "nicknames": 20
+  },
+  "gold": {
+   "conversations": 40,
+   "kinds": {
+    "amend": 2,
+    "not_order": 4,
+    "order": 34
+   },
+   "images": 0,
+   "lines": 149,
+   "styles": {
+    "ar": 11,
+    "arabizi": 24,
+    "en": 64,
+    "roman": 50
+   },
+   "heldout_terms": 0,
+   "size_omitted": 0,
+   "unit_omitted": 0,
+   "nicknames": 0
+  }
+ },
+ "hashes": {
+  "eval/dev/conversations.jsonl": "fd9638523ad0b7dd",
+  "eval/gold/conversations.jsonl": "667250d5235577d2",
+  "eval/test/conversations.jsonl": "7356789dc532a08d",
+  "eval/truth/dev.jsonl": "9c75e6cdbd287d55",
+  "eval/truth/gold.jsonl": "f550f575f332b156",
+  "eval/truth/gold_source.jsonl": "170943015b7da42f",
+  "eval/truth/heldout_terms.json": "b42b451c6f008709",
+  "eval/truth/test.jsonl": "d064df481f794a1a",
+  "world/aliases.json": "1225b954ac34c7d7",
+  "world/catalogue.json": "4f19b4c24756378b",
+  "world/customers.json": "448980892664c671",
+  "world/history.json": "928c4da763f81e83",
+  "world/stock.json": "01485e3f339f6577"
+ }
+}

@@ -1,0 +1,488 @@
+{
+ "nawa_cola": [
+  "kola",
+  "كولا"
+ ],
+ "nawa_diet": [
+  "cola dayet",
+  "cola drink diet",
+  "diet",
+  "kola dayet",
+  "كولا لايت",
+  "لايت",
+  "مشروب كولا دايت",
+  "نوا دايت"
+ ],
+ "nawa_zero": [
+  "cola drink zero",
+  "cola zero sugar",
+  "cold drink cola zero",
+  "kola ziro",
+  "zero sugar"
+ ],
+ "sparkle_up": [
+  "lamoon soda",
+  "nimboo",
+  "sparkel laymoon",
+  "sparkle up nimbu soda",
+  "white soda",
+  "سباركل ليمون غازي",
+  "مشروب ليمون"
+ ],
+ "sparkle_up_diet": [
+  "sparkel dayet",
+  "white soda diet"
+ ],
+ "mirage_orange": [
+  "burtu2al"
+ ],
+ "mirage_citrus": [
+  "citrus",
+  "حمضيات"
+ ],
+ "fizz_soda": [
+  "fizz soda",
+  "plain soda",
+  "صودا"
+ ],
+ "volt": [],
+ "volt_sf": [
+  "6aqa sugar free",
+  "energy bina cheeni",
+  "energy drink sugar free"
+ ],
+ "al_wadi": [
+  "drinking water",
+  "mineral water",
+  "ماء",
+  "مياه"
+ ],
+ "crystal_oasis": [
+  "crystal oasis pani",
+  "water",
+  "كريستال ماي",
+  "مياه"
+ ],
+ "al_wadi_sparkling": [
+  "mai ghazi",
+  "sparkling pani",
+  "sparkling water"
+ ],
+ "sunfield_orange": [
+  "3aseer burtu2al",
+  "santra juice",
+  "صن فيلد عصير برتقال"
+ ],
+ "sunfield_apple": [
+  "عصير تفاح"
+ ],
+ "sunfield_mango": [
+  "aam juice",
+  "عصير منجا"
+ ],
+ "sunfield_mixed_fruit": [
+  "cocktail juice",
+  "mix fruit juice"
+ ],
+ "sunfield_guava": [
+  "3aseer jawafa"
+ ],
+ "barari_milk_full": [
+  "7alib full",
+  "barari full fat",
+  "barari kamil",
+  "doodh full",
+  "fresh milk full cream",
+  "fresh milk full fat",
+  "milk full cream",
+  "براري كامل الدسم",
+  "حليب طازج كامل"
+ ],
+ "barari_milk_low": [
+  "7aleeb lait",
+  "7alib lait",
+  "barari low fat",
+  "doodh kam fat",
+  "dudh low fat",
+  "fresh milk low",
+  "fresh milk low fat",
+  "milk low"
+ ],
+ "barari_milk_skim": [
+  "doodh bina fat",
+  "dudh bina fat",
+  "dudh skim",
+  "milk fat free",
+  "milk skim",
+  "milk skimmed",
+  "حليب خالي الدسم",
+  "حليب طازج خالي الدسم"
+ ],
+ "barari_laban_full": [
+  "barari kamil",
+  "chaas full",
+  "chaas full cream",
+  "laban full",
+  "leben full",
+  "براري كامل الدسم",
+  "لبن",
+  "لبن شرب",
+  "لبن كامل الدسم"
+ ],
+ "barari_laban_low": [
+  "barari low fat",
+  "chaas kam fat",
+  "chaas low fat",
+  "laban kam fat",
+  "laban lait",
+  "laban low"
+ ],
+ "barari_uht": [
+  "7aleeb 3elba",
+  "long life milk",
+  "uht milk"
+ ],
+ "barari_yoghurt_full": [
+  "dahi full cream",
+  "yogurt full cream",
+  "zabadi full",
+  "زبادي"
+ ],
+ "barari_yoghurt_low": [
+  "barari low fat",
+  "rob qaleel",
+  "yoghurt light",
+  "yoghurt low",
+  "yogurt light",
+  "zabadi qaleel",
+  "زبادي قليل الدسم"
+ ],
+ "barari_labneh": [
+  "labneh",
+  "براري لبنة",
+  "لبنة"
+ ],
+ "barari_cheese_slices": [
+  "barari jibin slice",
+  "slice paneer",
+  "جبن شرائح"
+ ],
+ "barari_cream_cheese": [
+  "جبنة برطمان"
+ ],
+ "farm_eggs_white": [
+  "anda",
+  "anda safed",
+  "bayd",
+  "bayd abyad",
+  "egg",
+  "egg tray",
+  "egg tray white",
+  "farm fresh abya9",
+  "بيض أبيض"
+ ],
+ "farm_eggs_brown": [
+  "6aba2 bai6 asmar",
+  "6aba2 bai6 bunni",
+  "anda brown",
+  "bayd bunni",
+  "egg bhura",
+  "egg brown"
+ ],
+ "tannour_arabic_bread": [
+  "5ubz",
+  "arabic roti"
+ ],
+ "tannour_white_loaf": [
+  "5ubz toast",
+  "pav",
+  "sandwich bread",
+  "sandwich bread white",
+  "tannour white",
+  "toast abya9",
+  "toast bread",
+  "تنور أبيض"
+ ],
+ "tannour_brown_loaf": [
+  "5ubz toast bunni",
+  "sandwich bread brown",
+  "toast asmar",
+  "توست أسمر",
+  "توست بني"
+ ],
+ "crunchos_salted": [
+  "chips mel7",
+  "chips namkeen",
+  "chips salt",
+  "crisps salt",
+  "wafers namkeen",
+  "wafers plain",
+  "wefar namkeen"
+ ],
+ "crunchos_chilli": [
+  "chips hot",
+  "crisps chili",
+  "crisps hot",
+  "kranchos 7ar",
+  "wafers teekha",
+  "بطاطس شطة",
+  "شيبس حار",
+  "شيبس شطة"
+ ],
+ "crunchos_cheese": [
+  "ba6a6is jibin",
+  "chipps cheese",
+  "chips jibin",
+  "kranchos jebna",
+  "sheebs jibin",
+  "wefar cheese",
+  "بطاطس جبنة",
+  "كرانشوز جبنة"
+ ],
+ "crunchos_ketchup": [
+  "crisps tomato",
+  "crunchos ketchup",
+  "kranchos ketchup",
+  "بطاطس طماطم"
+ ],
+ "crunchos_salt_vinegar": [
+  "ba6a6is 5al",
+  "chipps salt and vinegar",
+  "chips 5al",
+  "chips vinegar",
+  "crisps salt and vinegar",
+  "kranchos 5al",
+  "wefar sirka",
+  "شيبس خل"
+ ],
+ "biskito_digestive": [
+  "daijestif",
+  "بسكويت دايجستف"
+ ],
+ "biskito_cream_choc": [
+  "baskoot chocolate",
+  "biskito baskoot chocolate",
+  "biskito chocolate biscuit",
+  "choco cream biscuit",
+  "chocolate biscuit"
+ ],
+ "biskito_cream_vanilla": [
+  "biskito vanilla biscuit",
+  "vanilla biscuit"
+ ],
+ "choco_dune": [
+  "choco dune wafer",
+  "choco wafer",
+  "wafer"
+ ],
+ "salty_bites_popcorn": [
+  "makai pop",
+  "pop corn",
+  "salty bites fashar",
+  "بوب كورن"
+ ],
+ "royale_basmati": [
+  "basmati",
+  "basmati rice",
+  "royale chawal",
+  "رويال أرز بسمتي",
+  "عيش بسمتي"
+ ],
+ "royale_sella": [
+  "3aish sella",
+  "royal ruz sella",
+  "royale sella",
+  "sella",
+  "رويال أرز سيلا"
+ ],
+ "royale_calrose": [
+  "3aish masri",
+  "royal ruz masri",
+  "royale calrose",
+  "short rice",
+  "رز قصير"
+ ],
+ "pure_sweet_sugar": [
+  "shakkar",
+  "sokar"
+ ],
+ "chakki_atta": [
+  "chakki atta"
+ ],
+ "chakki_maida": [
+  "6a7een abya9",
+  "chakki 6a7een"
+ ],
+ "sea_salt": [
+  "bahr namak",
+  "bahr salt",
+  "mel7",
+  "mil7",
+  "table salt",
+  "بحر ملح",
+  "ملح"
+ ],
+ "royale_toor": [
+  "daal toor"
+ ],
+ "royale_moong": [
+  "mung",
+  "mung dal"
+ ],
+ "royale_masoor": [
+  "3adas",
+  "عدس",
+  "عدس أحمر"
+ ],
+ "royale_chana": [
+  "دال شانا",
+  "رويال دال شانا"
+ ],
+ "royale_kabuli": [],
+ "sunola_sunflower": [
+  "sanola zait",
+  "sunflower oil",
+  "sunflower tel",
+  "sunola tel",
+  "zayt shams",
+  "زيت دوار الشمس"
+ ],
+ "sunola_corn": [
+  "corn oil",
+  "makai tel",
+  "زيت ذرة",
+  "صنولا زيت ذرة"
+ ],
+ "sunola_vegetable": [
+  "sanola zait nabati",
+  "sunola veg oil",
+  "vanaspati tel",
+  "صنولا زيت نباتي"
+ ],
+ "ghee_gold": [
+  "samn",
+  "البقرة الذهبية سمن",
+  "سمن بقر"
+ ],
+ "chaipur_tea_bags": [
+  "chai bag",
+  "chaipur tea bag"
+ ],
+ "chaipur_loose": [
+  "patti",
+  "shai",
+  "tea powder"
+ ],
+ "karak_premix": [
+  "chai karak",
+  "karak",
+  "karak premix",
+  "shaipur karak",
+  "تشايبور كرك",
+  "شاي كرك",
+  "كرك"
+ ],
+ "dune_coffee": [
+  "gahwa",
+  "kaafi",
+  "قهوة"
+ ],
+ "dune_3in1": [
+  "coffee mix",
+  "teen in ek coffee",
+  "ديون ثلاثة في واحد"
+ ],
+ "bahr_tuna_oil": [
+  "tuna machli",
+  "tuna machli oil",
+  "بحر بالزيت",
+  "تونا"
+ ],
+ "bahr_tuna_water": [
+  "bahr in water",
+  "tuna in water",
+  "tuna pani wala",
+  "tuna water"
+ ],
+ "rosso_tomato_paste": [
+  "tamatar paste",
+  "صلصة",
+  "معجون طماطم"
+ ],
+ "rosso_foul": [
+  "foul",
+  "فول مدمس"
+ ],
+ "rosso_chickpeas": [],
+ "rosso_sweetcorn": [
+  "roso thura"
+ ],
+ "rosso_ketchup": [
+  "roso ketchup"
+ ],
+ "rosso_mayo": [
+  "roso mayonez",
+  "روسو مايونيز",
+  "مايونيز"
+ ],
+ "shimmer_dish_lemon": [
+  "bartan sabun lemon",
+  "dish liquid lemon",
+  "dish soap",
+  "dish soap lemon",
+  "dish wash lemon",
+  "sa2il jali laymoon",
+  "سائل جلي ليمون",
+  "شيمر ليمون",
+  "صابون صحون"
+ ],
+ "shimmer_dish_original": [
+  "bartan sabun regular",
+  "dish wash normal",
+  "dish wash regular",
+  "sa2il jali 3adi",
+  "shimer 3adi",
+  "صابون صحون عادي"
+ ],
+ "klenzo_bleach": [
+  "chlorine",
+  "klenzo klor",
+  "مبيض"
+ ],
+ "brite_powder": [
+  "brite mas7oo2 ghaseel",
+  "kapde ka powder",
+  "mas7oo2 ghaseel",
+  "صابون غسيل"
+ ],
+ "brite_liquid": [
+  "liquid detergent",
+  "washing liquid",
+  "سائل غسيل"
+ ],
+ "fresh_floor_pine": [
+  "floor cleaner",
+  "pocha liquid"
+ ],
+ "softa_facial": [
+  "facial tissue",
+  "manadeel",
+  "softa manadeel",
+  "tissue box"
+ ],
+ "softa_toilet": [
+  "softa toilet roll",
+  "toilet roll"
+ ],
+ "softa_kitchen": [
+  "kitchen towel",
+  "softa manadeel matba5",
+  "مناديل مطبخ"
+ ],
+ "garbage_bags": [
+  "akyas zbala",
+  "akyas zibala",
+  "garbage bag",
+  "سترونج أكياس زبالة"
+ ]
+}
