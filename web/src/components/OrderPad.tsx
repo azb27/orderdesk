@@ -203,7 +203,9 @@ export default function OrderPad({ me, order, loading, onHighlight, onDone }: {
   const padRef = useRef<HTMLElement>(null);
 
   const line = order?.lines[selected];
-  useEffect(() => onHighlight(line ? line.source_text : null), [line, onHighlight]);
+  useEffect(() => {
+    onHighlight(line ? line.source_text : null);
+  }, [line, onHighlight]);
 
   const blockers = useMemo(() => {
     if (!order) return [];

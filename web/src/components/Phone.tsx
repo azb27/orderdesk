@@ -39,7 +39,10 @@ export default function Phone({ onClose }: { onClose: () => void }) {
   const thread = useQuery({ queryKey: keys.thread(phone), queryFn: () => api.thread(phone), enabled: !!phone, refetchInterval: 5_000 });
   const cust = customers.data?.find((c) => c.phone === phone);
   const samples = SAMPLES[cust?.language ?? "en"] ?? SAMPLES.en ?? [];
-  useEffect(() => endRef.current?.scrollIntoView({ block: "end" }), [thread.data]);
+  // braces matter: newer Chrome returns a Promise from scrollIntoView, and React would call it as a cleanup
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ block: "end" });
+  }, [thread.data]);
 
   async function send(body: string, image?: File) {
     if (!phone || (!body.trim() && !image)) return;
